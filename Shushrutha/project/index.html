@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNN Machine Learning Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #1e3c72, #2a5298);
+            color: #ffffff;
+        }
+
+        .container {
+            width: 85%;
+            margin: 30px auto;
+            background-color: rgba(255, 255, 255, 0.12);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #ffdd57;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            border-bottom: 2px solid #ffdd57;
+            padding-bottom: 8px;
+            margin-top: 30px;
+        }
+
+        p, li {
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        ul {
+            padding-left: 25px;
+        }
+
+        .title {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+        }
+
+        .section {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255,255,255,0.08);
+            border-left: 5px solid #ffdd57;
+            border-radius: 10px;
+        }
+
+        .formula {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #00ffcc;
+            background: rgba(0,0,0,0.25);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 15px;
+            font-weight: bold;
+            color: #ffdd57;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+
+        strong {
+            color: #00ffcc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Title Page -->
+    <div class="title">
+        <h1>RESEARCH AND IMPLEMENTATION OF MACHINE LEARNING CLASSIFIER BASED ON KNN</h1>
+        <p><strong>SHUSHURTHA .N</strong></p>
+        <p>25PG00097</p>
+    </div>
+
+    <!-- KNN Concept -->
+    <div class="section">
+        <h2>K-Data Mining Concept</h2>
+        <ul>
+            <li><strong>Definition:</strong> KNN is a simple non-parametric classification algorithm.</li>
+            <li><strong>Basic Idea:</strong> Classify based on nearest neighbors.</li>
+            <li><strong>Distance Calculation:</strong> Uses Euclidean distance.</li>
+            <li><strong>Choosing K:</strong> Select K closest data points.</li>
+            <li><strong>Voting:</strong> Majority voting decides class.</li>
+        </ul>
+    </div>
+
+    <!-- Mathematical Model -->
+    <div class="section">
+        <h2>Mathematical Model of KNN</h2>
+        <p><strong>Feature Vector:</strong> x = (x1, x2, x3, ..., xn)</p>
+        <p><strong>Distance Formula:</strong></p>
+        <div class="formula">
+            d(x,y) = √ Σ (xi - yi)²
+        </div>
+    </div>
+
+    <!-- Research Method -->
+    <div class="section">
+        <h2>KNN Research Method</h2>
+        <ul>
+            <li>Instance-based learning</li>
+            <li>Lazy learning method</li>
+            <li>K = 1 → Nearest Neighbor</li>
+            <li>High accuracy with large data</li>
+        </ul>
+    </div>
+
+    <!-- Program Design -->
+    <div class="section">
+        <h2>Program Interface Design</h2>
+        <ul>
+            <li>4 GroupBox controls</li>
+            <li>6 TextBox controls</li>
+            <li>2 ListBox controls</li>
+            <li>3 Buttons</li>
+            <li>8 Labels</li>
+            <li>5 RadioButtons</li>
+            <li>1 CheckBox</li>
+        </ul>
+    </div>
+
+    <!-- Database -->
+    <div class="section">
+        <h2>Database Linkage</h2>
+        <p>
+            Uses UCI dataset with 20,000 rows, 16 attributes, and 26 labels.<br>
+            Database name: <strong>datamin_problem</strong>
+        </p>
+    </div>
+
+    <!-- Conclusion -->
+    <div class="section">
+        <h2>Conclusion</h2>
+        <p>
+            KNN classifier achieves good classification results but depends on distance metrics.
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        Machine Learning Project Report | KNN Classifier
+    </div>
+
+</div>
+
+</body>
+</html>

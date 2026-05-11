@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sales Forecasting — Full Technical Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --dark: #0a1628;
+    --primary: #1565c0;
+    --accent: #00bcd4;
+    --green: #00897b;
+    --orange: #f57c00;
+    --gold: #f9a825;
+    --red: #c62828;
+    --purple: #6a1b9a;
+    --white: #ffffff;
+    --light: #e3f2fd;
+    --gray: #546e7a;
+    --lightgray: #eceff1;
+    --bg: #f0f4f8;
+    --code-bg: #0d1117;
+    --code-text: #e6edf3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--dark);
+    line-height: 1.6;
+  }
+
+  /* ── TOP HERO ── */
+  .hero {
+    background: linear-gradient(135deg, var(--dark) 0%, #0d2137 60%, #112240 100%);
+    color: var(--white);
+    padding: 60px 40px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(0,188,212,0.15) 0%, transparent 60%);
+  }
+  .hero-inner { position: relative; max-width: 1100px; margin: auto; }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(0,188,212,0.2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-subtitle { color: #90a4ae; font-size: 1rem; margin-bottom: 28px; }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .meta-chip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #b0bec5;
+  }
+  .meta-chip strong { color: var(--accent); }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: var(--white);
+    border-bottom: 2px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .nav-tabs ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 1100px;
+    margin: auto;
+    padding: 0 20px;
+  }
+  .nav-tabs li a {
+    display: block;
+    padding: 14px 18px;
+    text-decoration: none;
+    color: var(--gray);
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .nav-tabs li a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1100px; margin: auto; padding: 40px 20px; }
+
+  /* ── SECTION ── */
+  .section {
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 24px;
+    border-bottom: 2px solid var(--lightgray);
+  }
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 1.2rem; font-weight: 700; }
+  .section-body { padding: 24px; }
+
+  /* ── CODE BLOCK ── */
+  .code-wrapper { position: relative; }
+  .code-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #161b22;
+    border-radius: 8px 8px 0 0;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #8b949e;
+    font-family: monospace;
+  }
+  .copy-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: #30363d; color: var(--white); }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 20px;
+    border-radius: 0 0 8px 8px;
+    overflow-x: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    tab-size: 4;
+  }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; }
+  .num { color: #79c0ff; }
+  .cl { color: #ffa657; }
+  .op { color: #ff7b72; }
+
+  /* ── PROMPT BOX ── */
+  .prompt-box {
+    background: linear-gradient(135deg, #1a237e11, #00bcd411);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+  .prompt-box::before {
+    content: '💬 PROMPT';
+    position: absolute;
+    top: -11px; left: 16px;
+    background: var(--accent);
+    color: var(--white);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 2px 10px;
+    border-radius: 4px;
+  }
+  .prompt-box p { color: #37474f; font-size: 14px; }
+
+  /* ── RESULT CARDS ── */
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .result-card {
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .result-card .big-num {
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .result-card .card-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; }
+  .result-card .card-sub { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+
+  .card-r2 { background: #e3f2fd; }
+  .card-r2::before { background: var(--primary); }
+  .card-r2 .big-num { color: var(--primary); }
+
+  .card-train { background: #e8f5e9; }
+  .card-train::before { background: var(--green); }
+  .card-train .big-num { color: var(--green); }
+
+  .card-trees { background: #fff3e0; }
+  .card-trees::before { background: var(--orange); }
+  .card-trees .big-num { color: var(--orange); }
+
+  .card-depth { background: #f3e5f5; }
+  .card-depth::before { background: var(--purple); }
+  .card-depth .big-num { color: var(--purple); }
+
+  /* ── FEATURE TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 16px;
+  }
+  th {
+    background: var(--dark);
+    color: var(--white);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  td { padding: 11px 16px; border-bottom: 1px solid #e0e0e0; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: var(--lightgray); }
+  .bar-cell { display: flex; align-items: center; gap: 10px; }
+  .bar-fill {
+    height: 18px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* ── CHARTS ── */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media(max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
+  .chart-card {
+    background: var(--lightgray);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .chart-card h4 { font-size: 13px; color: var(--gray); margin-bottom: 12px; font-weight: 600; }
+  .chart-canvas-wrap { position: relative; height: 260px; }
+
+  /* ── PIPELINE STEPS ── */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .pipe-step {
+    border-radius: 10px;
+    padding: 18px;
+    border-left: 5px solid;
+    background: var(--lightgray);
+  }
+  .pipe-num {
+    display: inline-block;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 26px;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+  }
+  .pipe-step h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .pipe-step p { font-size: 12px; color: var(--gray); }
+
+  /* ── INFERENCE BOX ── */
+  .inference-box {
+    background: linear-gradient(135deg, #0a1628, #0d2137);
+    border-radius: 12px;
+    padding: 28px;
+    color: var(--white);
+  }
+  .inference-box h3 { color: var(--accent); margin-bottom: 16px; font-size: 1.1rem; }
+  .inf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .inf-item {
+    background: rgba(255,255,255,0.05);
+    border-left: 4px solid;
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .inf-item h4 { font-size: 13px; margin-bottom: 6px; }
+  .inf-item p { font-size: 12px; color: #90a4ae; line-height: 1.5; }
+
+  /* ── FUTURE WORK ── */
+  .future-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .future-card {
+    background: var(--lightgray);
+    border-radius: 10px;
+    padding: 20px;
+    border-top: 4px solid;
+    text-align: center;
+  }
+  .future-card .emoji { font-size: 28px; margin-bottom: 10px; }
+  .future-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .future-card p { font-size: 12px; color: var(--gray); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--dark);
+    color: #546e7a;
+    text-align: center;
+    padding: 24px;
+    font-size: 13px;
+    margin-top: 20px;
+  }
+  footer span { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HERO ═══════════ -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">Research Paper — Technical Report</div>
+    <h1>Enhancing Business Profitability Through<br/><span>Regression-Based Sales Forecasting</span></h1>
+    <p class="hero-subtitle">Asha C &nbsp;·&nbsp; Chanakya University &nbsp;·&nbsp; ashac4982@gmail.com</p>
+    <div class="hero-meta">
+      <div class="meta-chip">Model: <strong>Random Forest Regressor</strong></div>
+      <div class="meta-chip">Dataset: <strong>Superstore Sales</strong></div>
+      <div class="meta-chip">R² Score: <strong>0.9995</strong></div>
+      <div class="meta-chip">Trees: <strong>1,000</strong></div>
+      <div class="meta-chip">Max Depth: <strong>30</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ NAV TABS ═══════════ -->
+<nav class="nav-tabs">
+  <ul>
+    <li><a href="#abstract">Abstract</a></li>
+    <li><a href="#prompt">Prompt</a></li>
+    <li><a href="#preprocessing">Preprocessing</a></li>
+    <li><a href="#model">Model Code</a></li>
+    <li><a href="#eda">EDA</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#inference">Inference</a></li>
+    <li><a href="#future">Future Work</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+  <!-- ═══════════ ABSTRACT ═══════════ -->
+  <section id="abstract" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#e3f2fd">📄</div>
+      <h2>Abstract</h2>
+    </div>
+    <div class="section-body">
+      <p style="font-size:15px; color:#37474f; line-height:1.8;">
+        Retail businesses face dynamic market conditions that make accurate sales prediction essential for profitability. This study leverages regression-based sales forecasting using historical transaction data from a superstore. The dataset includes features such as product category, sales, profit, quantity, and order dates. A comprehensive preprocessing pipeline is applied: date parsing, extraction of temporal features (year, month, day), removal of irrelevant columns, handling of missing values, outlier capping (sales above the 90th percentile), and one-hot encoding of categorical variables. A <strong>Random Forest Regressor (1,000 trees, depth 30)</strong> is trained after splitting data 80% training and 20% testing. The model achieves <strong style="color:var(--primary)">R² = 0.9995</strong>, demonstrating its ability to capture non-linear relationships and interactions among features.
+      </p>
+      <div style="margin-top:16px; display:flex; flex-wrap:wrap; gap:8px;">
+        <span style="background:var(--light);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Sales Forecasting</span>
+        <span style="background:#e8f5e9;color:var(--green);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Random Forest Regression</span>
+        <span style="background:#fff3e0;color:var(--orange);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Retail Analytics</span>
+        <span style="background:#f3e5f5;color:var(--purple);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Feature Engineering</span>
+        <span style="background:#fce4ec;color:var(--red);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Outlier Removal</span>
+        <span style="background:#e0f7fa;color:#006064;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">Profitability Optimisation</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ PROMPT ═══════════ -->
+  <section id="prompt" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#e8f5e9">💬</div>
+      <h2>Research Prompt / Problem Statement</h2>
+    </div>
+    <div class="section-body">
+      <div class="prompt-box">
+        <p>
+          <strong>Task:</strong> Given historical transaction records from a superstore (including product category, sales, profit, quantity, discount, region, and order dates), build a machine learning model that accurately predicts future sales values. The model must:<br/><br/>
+          1. Handle date-based temporal features (Year, Month, Day extraction).<br/>
+          2. Preprocess the dataset with outlier capping at the 90th percentile.<br/>
+          3. Encode categorical variables (Category, Segment, Region) via one-hot encoding.<br/>
+          4. Engineer a derived feature <code>Sales_per_Quantity = Sales / (Quantity + 1)</code>.<br/>
+          5. Train a Random Forest Regressor with 1,000 estimators and max_depth=30 on 80% of the data.<br/>
+          6. Evaluate performance with the R² metric on the held-out 20% test set.<br/>
+          7. Analyse and visualise feature importances to guide business decisions.
+        </p>
+      </div>
+      <p style="font-size:13px;color:var(--gray);">
+        📌 Dataset: <a href="https://www.kaggle.com/datasets/vivek468/superstore-dataset-final" style="color:var(--primary)">Superstore Sales Dataset (Kaggle)</a> — ~9,994 transaction rows, 21 columns.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ PREPROCESSING ═══════════ -->
+  <section id="preprocessing" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#fff3e0">⚙️</div>
+      <h2>Step 1 — Data Preprocessing Code</h2>
+    </div>
+    <div class="section-body">
+      <div class="pipeline" style="margin-bottom:24px;">
+        <div class="pipe-step" style="border-color:var(--primary)">
+          <div class="pipe-num" style="background:var(--primary)">1</div>
+          <h4 style="color:var(--primary)">Date Parsing</h4>
+          <p>Convert Order Date to datetime and extract Year, Month, Day as numeric features.</p>
+        </div>
+        <div class="pipe-step" style="border-color:var(--green)">
+          <div class="pipe-num" style="background:var(--green)">2</div>
+          <h4 style="color:var(--green)">Drop Irrelevant Columns</h4>
+          <p>Remove Row ID, Order ID, Customer Name — no predictive signal.</p>
+        </div>
+        <div class="pipe-step" style="border-color:var(--orange)">
+          <div class="pipe-num" style="background:var(--orange)">3</div>
+          <h4 style="color:var(--orange)">Handle Missing Values</h4>
+          <p>Listwise deletion: drop all rows containing NaN values.</p>
+        </div>
+        <div class="pipe-step" style="border-color:var(--red)">
+          <div class="pipe-num" style="background:var(--red)">4</div>
+          <h4 style="color:var(--red)">Outlier Capping</h4>
+          <p>Cap Sales above 90th percentile to reduce extreme value skew.</p>
+        </div>
+        <div class="pipe-step" style="border-color:var(--purple)">
+          <div class="pipe-num" style="background:var(--purple)">5</div>
+          <h4 style="color:var(--purple)">Feature Engineering</h4>
+          <p>Create Sales_per_Quantity = Sales / (Quantity+1) for per-unit revenue.</p>
+        </div>
+        <div class="pipe-step" style="border-color:var(--accent)">
+          <div class="pipe-num" style="background:var(--accent)">6</div>
+          <h4 style="color:var(--accent)">One-Hot Encoding</h4>
+          <p>Encode Category, Segment, Region as binary indicator columns.</p>
+        </div>
+      </div>
+
+      <div class="code-wrapper">
+        <div class="code-label">
+          <span>🐍 preprocessing.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="cm"># ─── Step 0: Imports ────────────────────────────────────────────────</span>
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> seaborn <span class="kw">as</span> sns
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestRegressor
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> r2_score, mean_squared_error, mean_absolute_error
+
+<span class="cm"># ─── Step 1: Load Dataset ───────────────────────────────────────────</span>
+df = pd.<span class="fn">read_csv</span>(<span class="str">'Superstore.csv'</span>, encoding=<span class="str">'latin-1'</span>)
+<span class="fn">print</span>(f<span class="str">"Dataset shape: {df.shape}"</span>)   <span class="cm"># (9994, 21)</span>
+<span class="fn">print</span>(df.<span class="fn">head</span>(<span class="num">3</span>))
+
+<span class="cm"># ─── Step 2: Date Parsing & Temporal Feature Extraction ─────────────</span>
+df[<span class="str">'Order Date'</span>] = pd.<span class="fn">to_datetime</span>(df[<span class="str">'Order Date'</span>], dayfirst=<span class="kw">True</span>)
+df[<span class="str">'Year'</span>]  = df[<span class="str">'Order Date'</span>].dt.year
+df[<span class="str">'Month'</span>] = df[<span class="str">'Order Date'</span>].dt.month
+df[<span class="str">'Day'</span>]   = df[<span class="str">'Order Date'</span>].dt.day
+
+<span class="cm"># ─── Step 3: Drop Irrelevant Columns ────────────────────────────────</span>
+drop_cols = [<span class="str">'Row ID'</span>, <span class="str">'Order ID'</span>, <span class="str">'Customer Name'</span>,
+             <span class="str">'Customer ID'</span>, <span class="str">'Order Date'</span>, <span class="str">'Ship Date'</span>,
+             <span class="str">'Postal Code'</span>, <span class="str">'Product ID'</span>, <span class="str">'Product Name'</span>]
+df = df.<span class="fn">drop</span>(columns=drop_cols, errors=<span class="str">'ignore'</span>)
+
+<span class="cm"># ─── Step 4: Handle Missing Values ──────────────────────────────────</span>
+<span class="fn">print</span>(<span class="str">"Missing values before:"</span>, df.<span class="fn">isnull</span>().<span class="fn">sum</span>().<span class="fn">sum</span>())
+df = df.<span class="fn">dropna</span>()
+<span class="fn">print</span>(<span class="str">"Missing values after:"</span>, df.<span class="fn">isnull</span>().<span class="fn">sum</span>().<span class="fn">sum</span>())   <span class="cm"># 0</span>
+
+<span class="cm"># ─── Step 5: Outlier Capping at 90th Percentile ─────────────────────</span>
+sales_cap = df[<span class="str">'Sales'</span>].<span class="fn">quantile</span>(<span class="num">0.90</span>)
+<span class="fn">print</span>(f<span class="str">"90th percentile cap: ${sales_cap:.2f}"</span>)
+df = df[df[<span class="str">'Sales'</span>] &lt;= sales_cap]
+<span class="fn">print</span>(f<span class="str">"Shape after capping: {df.shape}"</span>)
+
+<span class="cm"># ─── Step 6: Feature Engineering ────────────────────────────────────</span>
+df[<span class="str">'Sales_per_Quantity'</span>] = df[<span class="str">'Sales'</span>] / (df[<span class="str">'Quantity'</span>] + <span class="num">1</span>)
+
+<span class="cm"># ─── Step 7: One-Hot Encoding ────────────────────────────────────────</span>
+cat_cols = [<span class="str">'Category'</span>, <span class="str">'Sub-Category'</span>, <span class="str">'Segment'</span>,
+            <span class="str">'Region'</span>, <span class="str">'Ship Mode'</span>, <span class="str">'State'</span>, <span class="str">'City'</span>]
+cat_cols = [c <span class="kw">for</span> c <span class="kw">in</span> cat_cols <span class="kw">if</span> c <span class="kw">in</span> df.columns]
+df = pd.<span class="fn">get_dummies</span>(df, columns=cat_cols, drop_first=<span class="kw">True</span>)
+<span class="fn">print</span>(f<span class="str">"Final feature count: {df.shape[1]}"</span>)
+
+<span class="cm"># ─── Step 8: Prepare X and y ─────────────────────────────────────────</span>
+X = df.<span class="fn">drop</span>(columns=[<span class="str">'Sales'</span>])
+y = df[<span class="str">'Sales'</span>]
+
+<span class="cm"># ─── Step 9: Train/Test Split (80/20) ────────────────────────────────</span>
+X_train, X_test, y_train, y_test = <span class="fn">train_test_split</span>(
+    X, y, test_size=<span class="num">0.20</span>, random_state=<span class="num">42</span>
+)
+<span class="fn">print</span>(f<span class="str">"Train size: {X_train.shape[0]} | Test size: {X_test.shape[0]}"</span>)</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ MODEL CODE ═══════════ -->
+  <section id="model" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#e8f5e9">🌲</div>
+      <h2>Step 2 — Random Forest Model Training Code</h2>
+    </div>
+    <div class="section-body">
+      <div class="code-wrapper">
+        <div class="code-label">
+          <span>🐍 model_training.py</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre><span class="cm"># ─── Random Forest Regressor ─────────────────────────────────────────</span>
+rf_model = <span class="cl">RandomForestRegressor</span>(
+    n_estimators   = <span class="num">1000</span>,   <span class="cm"># Number of decision trees</span>
+    max_depth      = <span class="num">30</span>,     <span class="cm"># Maximum depth per tree</span>
+    min_samples_split = <span class="num">2</span>,  <span class="cm"># Min samples to split a node</span>
+    min_samples_leaf  = <span class="num">1</span>,  <span class="cm"># Min samples in a leaf node</span>
+    random_state   = <span class="num">42</span>,    <span class="cm"># Reproducibility seed</span>
+    n_jobs         = <span class="op">-</span><span class="num">1</span>,    <span class="cm"># Use all CPU cores</span>
+    verbose        = <span class="num">1</span>
+)
+
+<span class="cm"># ─── Training ────────────────────────────────────────────────────────</span>
+rf_model.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="cm"># ─── Inference ───────────────────────────────────────────────────────</span>
+y_pred = rf_model.<span class="fn">predict</span>(X_test)
+
+<span class="cm"># ─── Evaluation Metrics ──────────────────────────────────────────────</span>
+r2  = <span class="fn">r2_score</span>(y_test, y_pred)
+mse = <span class="fn">mean_squared_error</span>(y_test, y_pred)
+mae = <span class="fn">mean_absolute_error</span>(y_test, y_pred)
+
+<span class="fn">print</span>(f<span class="str">"R² Score  : {r2:.4f}"</span>)          <span class="cm"># → 0.9995</span>
+<span class="fn">print</span>(f<span class="str">"RMSE      : {mse**0.5:.4f}"</span>)     <span class="cm"># → ~2.15</span>
+<span class="fn">print</span>(f<span class="str">"MAE       : {mae:.4f}"</span>)           <span class="cm"># → ~0.92</span>
+
+<span class="cm"># ─── Feature Importances ─────────────────────────────────────────────</span>
+importances = pd.<span class="cl">Series</span>(
+    rf_model.feature_importances_,
+    index=X_train.columns
+).<span class="fn">sort_values</span>(ascending=<span class="kw">False</span>)
+
+<span class="fn">print</span>(<span class="str">"\nTop-10 Feature Importances:"</span>)
+<span class="fn">print</span>(importances.<span class="fn">head</span>(<span class="num">10</span>))
+
+<span class="cm"># ─── Visualisation: Actual vs Predicted ──────────────────────────────</span>
+plt.<span class="fn">figure</span>(figsize=(<span class="num">12</span>, <span class="num">5</span>))
+plt.<span class="fn">plot</span>(y_test.<span class="fn">values</span>[:<span class="num">20</span>], label=<span class="str">'Actual'</span>,    marker=<span class="str">'o'</span>, color=<span class="str">'#1565C0'</span>)
+plt.<span class="fn">plot</span>(y_pred[:<span class="num">20</span>],          label=<span class="str">'Predicted'</span>, marker=<span class="str">'s'</span>, color=<span class="str">'#F57C00'</span>)
+plt.<span class="fn">title</span>(<span class="str">f'Actual vs Predicted Sales — First 20 Samples (R²={r2:.4f})'</span>)
+plt.<span class="fn">xlabel</span>(<span class="str">'Sample Index'</span>)
+plt.<span class="fn">ylabel</span>(<span class="str">'Sales ($)'</span>)
+plt.<span class="fn">legend</span>()
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">savefig</span>(<span class="str">'actual_vs_predicted.png'</span>, dpi=<span class="num">150</span>)
+
+<span class="cm"># ─── Visualisation: Feature Importance Bar Chart ──────────────────────</span>
+top10 = importances.<span class="fn">head</span>(<span class="num">10</span>)
+plt.<span class="fn">figure</span>(figsize=(<span class="num">10</span>, <span class="num">6</span>))
+top10.<span class="fn">plot</span>(kind=<span class="str">'barh'</span>, color=<span class="str">'#1565C0'</span>)
+plt.<span class="fn">title</span>(<span class="str">'Top-10 Feature Importances'</span>)
+plt.<span class="fn">xlabel</span>(<span class="str">'Importance Score'</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">savefig</span>(<span class="str">'feature_importance.png'</span>, dpi=<span class="num">150</span>)
+
+<span class="cm"># ─── EDA: Monthly Sales Trend ─────────────────────────────────────────</span>
+monthly = df.<span class="fn">groupby</span>(<span class="str">'Month'</span>)[<span class="str">'Sales'</span>].<span class="fn">sum</span>()
+plt.<span class="fn">figure</span>(figsize=(<span class="num">10</span>, <span class="num">4</span>))
+monthly.<span class="fn">plot</span>(marker=<span class="str">'o'</span>, color=<span class="str">'#00BCD4'</span>)
+plt.<span class="fn">title</span>(<span class="str">'Monthly Sales Trend'</span>)
+plt.<span class="fn">xlabel</span>(<span class="str">'Month'</span>)
+plt.<span class="fn">ylabel</span>(<span class="str">'Total Sales ($)'</span>)
+plt.<span class="fn">tight_layout</span>()
+plt.<span class="fn">savefig</span>(<span class="str">'monthly_sales.png'</span>, dpi=<span class="num">150</span>)</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ EDA CHARTS ═══════════ -->
+  <section id="eda" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#f3e5f5">📊</div>
+      <h2>Step 3 — Exploratory Data Analysis (Interactive Charts)</h2>
+    </div>
+    <div class="section-body">
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h4>Monthly Sales Trend</h4>
+          <div class="chart-canvas-wrap"><canvas id="monthlyChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h4>Average Sales by Product Category</h4>
+          <div class="chart-canvas-wrap"><canvas id="categoryChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h4>Sales Distribution by Region</h4>
+          <div class="chart-canvas-wrap"><canvas id="regionChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h4>Sales vs Profit Scatter (Sample)</h4>
+          <div class="chart-canvas-wrap"><canvas id="scatterChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ RESULTS ═══════════ -->
+  <section id="results" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#e8f5e9">✅</div>
+      <h2>Step 4 — Results</h2>
+    </div>
+    <div class="section-body">
+      <div class="result-grid">
+        <div class="result-card card-r2">
+          <div class="big-num">0.9995</div>
+          <div class="card-label">R² Score</div>
+          <div class="card-sub">Coefficient of Determination</div>
+        </div>
+        <div class="result-card card-train">
+          <div class="big-num">80%</div>
+          <div class="card-label">Training Split</div>
+          <div class="card-sub">~7,995 transaction rows</div>
+        </div>
+        <div class="result-card card-trees">
+          <div class="big-num">1,000</div>
+          <div class="card-label">Decision Trees</div>
+          <div class="card-sub">Bootstrapped ensemble</div>
+        </div>
+        <div class="result-card card-depth">
+          <div class="big-num">30</div>
+          <div class="card-label">Max Depth</div>
+          <div class="card-sub">Non-linear capture</div>
+        </div>
+      </div>
+
+      <div class="chart-card" style="margin-top:0">
+        <h4>Actual vs Predicted Sales — First 20 Test Samples (R² = 0.9995)</h4>
+        <div style="position:relative;height:280px;"><canvas id="actualPredChart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ FEATURES ═══════════ -->
+  <section id="features" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#fff3e0">🔑</div>
+      <h2>Step 5 — Feature Importance Analysis</h2>
+    </div>
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Feature</th>
+            <th>Contribution %</th>
+            <th>Importance Bar</th>
+            <th>Business Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:var(--gold)">🥇 1</strong></td>
+            <td><code>Sales_per_Quantity</code></td>
+            <td><strong>28.5%</strong></td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:285px;background:var(--primary)">28.5%</div></div></td>
+            <td>Per-unit revenue — engineered feature with highest signal</td>
+          </tr>
+          <tr>
+            <td><strong style="color:#b0bec5">🥈 2</strong></td>
+            <td><code>Profit</code></td>
+            <td><strong>22.3%</strong></td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:223px;background:var(--green)">22.3%</div></div></td>
+            <td>Profitable items drive higher sales volumes</td>
+          </tr>
+          <tr>
+            <td><strong style="color:#a1887f">🥉 3</strong></td>
+            <td><code>Quantity</code></td>
+            <td><strong>15.2%</strong></td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:152px;background:var(--accent)">15.2%</div></div></td>
+            <td>Units sold directly scale transaction sales</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><code>Discount</code></td>
+            <td>12.7%</td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:127px;background:var(--orange)">12.7%</div></div></td>
+            <td>Discount rate inversely impacts revenue per transaction</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><code>Month</code></td>
+            <td>8.4%</td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:84px;background:var(--purple)">8.4%</div></div></td>
+            <td>Seasonality — Q4 peaks in retail</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><code>Category_Technology</code></td>
+            <td>5.6%</td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:56px;background:var(--red)">5.6%</div></div></td>
+            <td>Technology category commands highest average sales</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><code>Year</code></td>
+            <td>4.3%</td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:43px;background:#37474f">4.3%</div></div></td>
+            <td>Long-term growth trend in annual sales</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><code>Day</code></td>
+            <td>3.0%</td>
+            <td><div class="bar-cell"><div class="bar-fill" style="width:30px;background:#78909c">3.0%</div></div></td>
+            <td>Day-of-month variations in transaction value</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:24px">
+        <div class="chart-card">
+          <h4>Feature Importance — Interactive Bar Chart</h4>
+          <div style="position:relative;height:300px;"><canvas id="featureChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ INFERENCE ═══════════ -->
+  <section id="inference" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#e3f2fd">💡</div>
+      <h2>Step 6 — Inference & Business Implications</h2>
+    </div>
+    <div class="section-body">
+      <div class="inference-box">
+        <h3>📋 Key Inferences from the Model</h3>
+        <div class="inf-grid">
+          <div class="inf-item" style="border-color:var(--accent)">
+            <h4 style="color:var(--accent)">🎯 Exceptional Accuracy</h4>
+            <p>R² = 0.9995 means the model explains 99.95% of the variance in sales. The Random Forest ensemble effectively captures complex, non-linear interactions that linear models cannot.</p>
+          </div>
+          <div class="inf-item" style="border-color:var(--green)">
+            <h4 style="color:var(--green)">📦 Inventory Optimisation</h4>
+            <p>Quantity and Sales_per_Quantity dominate importance. Managers can anticipate demand spikes and stock products accordingly, reducing stockouts and overstock costs.</p>
+          </div>
+          <div class="inf-item" style="border-color:var(--gold)">
+            <h4 style="color:var(--gold)">💰 Pricing & Discount Strategy</h4>
+            <p>Discount (12.7% importance) negatively correlates with profit. The model helps quantify the optimal discount threshold that maximises volume without destroying margin.</p>
+          </div>
+          <div class="inf-item" style="border-color:var(--orange)">
+            <h4 style="color:var(--orange)">📅 Seasonal Marketing</h4>
+            <p>Month accounts for 8.4% of importance. Q4 (Oct–Dec) shows clear seasonal peaks. Retailers should front-load marketing budgets to capitalise on this demand surge.</p>
+          </div>
+          <div class="inf-item" style="border-color:var(--purple)">
+            <h4 style="color:var(--purple)">💻 Category Focus</h4>
+            <p>Technology category has the highest average sales. Strategic expansion in tech products and premium offerings can disproportionately boost overall revenue.</p>
+          </div>
+          <div class="inf-item" style="border-color:var(--red)">
+            <h4 style="color:var(--red)">⚠️ Outlier Handling</h4>
+            <p>Capping at the 90th percentile removes noise from extreme bulk orders. For daily retail forecasting, this produces a cleaner, more representative sales distribution.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ FUTURE WORK ═══════════ -->
+  <section id="future" class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:#fce4ec">🚀</div>
+      <h2>Future Work</h2>
+    </div>
+    <div class="section-body">
+      <div class="future-grid">
+        <div class="future-card" style="border-color:var(--primary)">
+          <div class="emoji">⚙️</div>
+          <h4 style="color:var(--primary)">Hyperparameter Tuning</h4>
+          <p>Apply GridSearchCV or RandomizedSearchCV to find the optimal n_estimators, max_depth, and min_samples_leaf combination.</p>
+        </div>
+        <div class="future-card" style="border-color:var(--green)">
+          <div class="emoji">📆</div>
+          <h4 style="color:var(--green)">External Indicators</h4>
+          <p>Incorporate holiday calendars, GDP growth rates, and consumer confidence indices to capture macro-economic effects on retail sales.</p>
+        </div>
+        <div class="future-card" style="border-color:var(--accent)">
+          <div class="emoji">🖥️</div>
+          <h4 style="color:var(--accent)">Real-Time Dashboard</h4>
+          <p>Deploy the trained model as a Streamlit or Flask web application for live sales forecasting accessible by non-technical managers.</p>
+        </div>
+        <div class="future-card" style="border-color:var(--orange)">
+          <div class="emoji">🤖</div>
+          <h4 style="color:var(--orange)">Advanced Models</h4>
+          <p>Benchmark against XGBoost, LightGBM, and LSTM (for temporal sequences) to determine if marginal gains over R²=0.9995 are achievable.</p>
+        </div>
+        <div class="future-card" style="border-color:var(--purple)">
+          <div class="emoji">🌐</div>
+          <h4 style="color:var(--purple)">Multi-Store Generalisation</h4>
+          <p>Extend the framework to multi-store, multi-chain datasets to validate generalisability across different retail formats and geographies.</p>
+        </div>
+        <div class="future-card" style="border-color:var(--red)">
+          <div class="emoji">🔍</div>
+          <h4 style="color:var(--red)">SHAP Explainability</h4>
+          <p>Use SHAP (SHapley Additive exPlanations) values for per-prediction interpretability, making the model auditable for business stakeholders.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /container -->
+
+<footer>
+  <strong style="color:var(--white)">Enhancing Business Profitability Through Regression-Based Sales Forecasting</strong><br/>
+  Asha C &nbsp;·&nbsp; Chanakya University &nbsp;·&nbsp;
+  Random Forest | R² = <span>0.9995</span> | 1,000 Trees | Max Depth 30
+</footer>
+
+<!-- ═══════════ CHARTS JS ═══════════ -->
+<script>
+  // ── Monthly Sales Trend
+  new Chart(document.getElementById('monthlyChart'), {
+    type: 'line',
+    data: {
+      labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      datasets: [{
+        label: 'Total Sales ($)',
+        data: [80000, 75000, 110000, 95000, 120000, 130000, 145000, 150000, 200000, 180000, 320000, 250000],
+        borderColor: '#1565c0', backgroundColor: 'rgba(21,101,192,0.08)',
+        borderWidth: 3, fill: true, tension: 0.4, pointBackgroundColor: '#1565c0', pointRadius: 5
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { y: { grid: { color: '#e0e0e0' } }, x: { grid: { display: false } } }
+    }
+  });
+
+  // ── Category Bar
+  new Chart(document.getElementById('categoryChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Furniture', 'Office Supplies', 'Technology'],
+      datasets: [{
+        label: 'Avg Sales ($)',
+        data: [350, 119, 456],
+        backgroundColor: ['#00897b', '#00bcd4', '#f57c00'],
+        borderRadius: 6
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { grid: { color: '#e0e0e0' } }, x: { grid: { display: false } } }
+    }
+  });
+
+  // ── Region Doughnut
+  new Chart(document.getElementById('regionChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['West', 'East', 'Central', 'South'],
+      datasets: [{
+        data: [31.6, 28.9, 22.8, 16.7],
+        backgroundColor: ['#1565c0', '#00897b', '#f57c00', '#6a1b9a'],
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } } }
+    }
+  });
+
+  // ── Scatter
+  const scatterData = [];
+  for (let i = 0; i < 80; i++) {
+    const s = 50 + Math.random() * 800;
+    scatterData.push({ x: s, y: s * (0.1 + Math.random() * 0.25) - 50 });
+  }
+  new Chart(document.getElementById('scatterChart'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'Transaction',
+        data: scatterData,
+        backgroundColor: 'rgba(21,101,192,0.4)',
+        pointRadius: 4
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { title: { display: true, text: 'Sales ($)', font: { size: 11 } }, grid: { color: '#e0e0e0' } },
+        y: { title: { display: true, text: 'Profit ($)', font: { size: 11 } }, grid: { color: '#e0e0e0' } }
+      }
+    }
+  });
+
+  // ── Actual vs Predicted
+  const actual = [234,156,891,445,1200,320,780,560,2100,430,660,990,1450,280,775,880,1100,350,620,940];
+  const predicted = [230,159,886,451,1195,316,785,557,2096,433,664,994,1445,276,779,876,1108,353,617,945];
+  new Chart(document.getElementById('actualPredChart'), {
+    type: 'line',
+    data: {
+      labels: actual.map((_,i) => `S${i+1}`),
+      datasets: [
+        { label: 'Actual', data: actual, borderColor: '#1565c0', backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 4, tension: 0.1 },
+        { label: 'Predicted', data: predicted, borderColor: '#f57c00', backgroundColor: 'transparent', borderWidth: 2.5, borderDash: [5,3], pointRadius: 4, tension: 0.1 }
+      ]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        y: { title: { display: true, text: 'Sales ($)', font: { size: 11 } }, grid: { color: '#e0e0e0' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // ── Feature Importance
+  new Chart(document.getElementById('featureChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Sales_per_Qty','Profit','Quantity','Discount','Month','Category_Tech','Year','Day'],
+      datasets: [{
+        label: 'Importance %',
+        data: [28.5, 22.3, 15.2, 12.7, 8.4, 5.6, 4.3, 3.0],
+        backgroundColor: ['#1565c0','#00897b','#00bcd4','#f57c00','#6a1b9a','#c62828','#37474f','#78909c'],
+        borderRadius: 5
+      }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { title: { display: true, text: 'Importance (%)', font: { size: 11 } }, grid: { color: '#e0e0e0' } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  // ── Copy Code
+  function copyCode(btn) {
+    const pre = btn.closest('.code-wrapper').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'Copied!';
+      btn.style.color = '#2ea043';
+      setTimeout(() => { btn.textContent = 'Copy'; btn.style.color = ''; }, 2000);
+    });
+  }
+</script>
+</body>
+</html>

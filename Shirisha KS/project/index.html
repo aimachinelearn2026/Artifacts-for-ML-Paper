@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Market Prediction — ML Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #09090f;
+    --bg2: #111118;
+    --bg3: #181820;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0eff7;
+    --text2: #9895b5;
+    --text3: #6561828;
+    --accent: #7f6ef7;
+    --accent2: #a899ff;
+    --green: #3de39e;
+    --green2: #0f9e61;
+    --red: #f76e6e;
+    --amber: #f7c96e;
+    --teal: #5de4c4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    line-height: 1.7;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 4rem;
+    background: rgba(9,9,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.1rem;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .nav-logo span { color: var(--accent2); }
+  .nav-links { display: flex; gap: 2rem; }
+  .nav-links a {
+    font-size: 0.78rem; color: var(--text2); text-decoration: none;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-badge {
+    font-size: 0.72rem; padding: 0.3rem 0.9rem;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    color: var(--accent2);
+    letter-spacing: 0.06em;
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 10rem 4rem 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(127,110,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(127,110,247,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+  .hero-glow {
+    position: absolute; top: 15%; left: 35%;
+    width: 600px; height: 600px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(127,110,247,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent2); margin-bottom: 2rem;
+  }
+  .hero-tag::before {
+    content: '';
+    display: block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+  h1 span { color: var(--accent2); }
+  .hero-sub {
+    font-size: 1rem; color: var(--text2); max-width: 520px;
+    line-height: 1.8; margin-bottom: 3rem;
+  }
+  .hero-stats {
+    display: flex; gap: 3rem;
+  }
+  .hero-stat .num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem; font-weight: 700;
+    color: var(--text);
+  }
+  .hero-stat .num em { color: var(--green); font-style: normal; }
+  .hero-stat .lbl { font-size: 0.72rem; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* TICKER TAPE */
+  .ticker {
+    background: var(--bg3);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 0; overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-flex; gap: 3rem;
+    animation: scroll 30s linear infinite;
+  }
+  @keyframes scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .ticker-item {
+    font-size: 0.78rem; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .ticker-item .sym { color: var(--text2); }
+  .ticker-item .up { color: var(--green); }
+  .ticker-item .down { color: var(--red); }
+
+  /* SECTIONS */
+  section {
+    padding: 6rem 4rem;
+    border-top: 1px solid var(--border);
+  }
+  .section-label {
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 0.75rem;
+  }
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700; letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+  }
+  .section-desc { color: var(--text2); max-width: 560px; font-size: 0.92rem; margin-bottom: 3rem; }
+
+  /* DATASET CARDS */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 3rem;
+  }
+  .stat-card {
+    background: var(--bg2);
+    padding: 1.5rem;
+    transition: background 0.2s;
+  }
+  .stat-card:hover { background: var(--bg3); }
+  .stat-card .card-lbl {
+    font-size: 0.7rem; color: var(--text2); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;
+  }
+  .stat-card .card-lbl .dot {
+    width: 5px; height: 5px; border-radius: 50%;
+  }
+  .stat-card .card-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem; font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .stat-card .card-sub { font-size: 0.75rem; color: var(--text2); margin-top: 0.25rem; }
+
+  /* FEATURES TABLE */
+  .features-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  .features-table th {
+    text-align: left; padding: 0.75rem 1rem;
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text2); border-bottom: 1px solid var(--border2);
+    font-weight: 400;
+  }
+  .features-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .features-table tr:hover td { background: rgba(127,110,247,0.04); }
+  .badge {
+    display: inline-block;
+    font-size: 0.68rem; padding: 0.2rem 0.6rem; border-radius: 999px;
+    letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500;
+  }
+  .badge-num { background: rgba(93,228,196,0.1); color: var(--teal); }
+  .badge-cat { background: rgba(247,201,110,0.1); color: var(--amber); }
+  .badge-bool { background: rgba(127,110,247,0.12); color: var(--accent2); }
+  .badge-target { background: rgba(61,227,158,0.12); color: var(--green); border: 1px solid rgba(61,227,158,0.2); }
+
+  /* MODEL CARDS */
+  .models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+  .model-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .model-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .model-card.best {
+    border-color: rgba(127,110,247,0.4);
+    background: linear-gradient(135deg, rgba(127,110,247,0.06) 0%, var(--bg2) 60%);
+  }
+  .model-card.best::before {
+    content: '★ BEST';
+    position: absolute; top: 1rem; right: 1rem;
+    font-size: 0.65rem; letter-spacing: 0.1em;
+    color: var(--accent2);
+    background: rgba(127,110,247,0.15);
+    padding: 0.2rem 0.6rem; border-radius: 999px;
+  }
+  .model-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; margin-bottom: 1rem;
+  }
+  .model-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem;
+  }
+  .model-acc-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 1rem 0 0.5rem;
+  }
+  .model-acc {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem; font-weight: 700;
+  }
+  .acc-bar-bg {
+    height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden;
+    margin-top: 0.5rem;
+  }
+  .acc-bar {
+    height: 100%; border-radius: 2px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .model-desc { font-size: 0.78rem; color: var(--text2); margin-top: 0.75rem; }
+
+  /* CHART SECTION */
+  .chart-wrapper {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  .chart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .chart-title { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 600; }
+  .chart-sub { font-size: 0.75rem; color: var(--text2); margin-top: 0.2rem; }
+
+  /* CONFUSION MATRIX */
+  .matrix-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    max-width: 300px;
+  }
+  .matrix-cell {
+    padding: 1.5rem; border-radius: 8px; text-align: center;
+  }
+  .matrix-cell .mc-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem; font-weight: 700;
+  }
+  .matrix-cell .mc-lbl { font-size: 0.68rem; color: var(--text2); margin-top: 0.25rem; letter-spacing: 0.06em; }
+  .tp { background: rgba(61,227,158,0.1); border: 1px solid rgba(61,227,158,0.2); }
+  .tp .mc-num { color: var(--green); }
+  .tn { background: rgba(93,228,196,0.08); border: 1px solid rgba(93,228,196,0.15); }
+  .tn .mc-num { color: var(--teal); }
+  .fp { background: rgba(247,110,110,0.07); border: 1px solid rgba(247,110,110,0.15); }
+  .fp .mc-num { color: var(--red); }
+  .fn { background: rgba(247,201,110,0.07); border: 1px solid rgba(247,201,110,0.15); }
+  .fn .mc-num { color: var(--amber); }
+
+  /* INSIGHTS */
+  .insights-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  }
+  .insight-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+  .insight-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .insight-card p { font-size: 0.82rem; color: var(--text2); line-height: 1.7; }
+  .icon-circle {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 2rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.75rem; color: var(--text2);
+  }
+  footer strong { color: var(--text); font-weight: 500; }
+
+  /* ANIMATIONS */
+  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero, section { padding: 5rem 1.5rem 3rem; }
+    .hero { padding-top: 8rem; }
+    h1 { font-size: 2.5rem; }
+    .hero-stats { gap: 1.5rem; flex-wrap: wrap; }
+    .insights-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 1rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Stock<span>ML</span></div>
+  <div class="nav-links">
+    <a href="#dataset">Dataset</a>
+    <a href="#models">Models</a>
+    <a href="#results">Results</a>
+    <a href="#insights">Insights</a>
+  </div>
+  <div class="nav-badge">v1.0 · 2026</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="border-top: none; padding: 10rem 4rem 6rem;">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-tag">Machine Learning · Stock Market Prediction</div>
+  <h1>Predict<br>Market<br><span>Trends</span></h1>
+  <p class="hero-sub">
+    Five ML models trained on 25,000+ stock records to classify upward price trends — from linear regression to neural networks.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num"><em>92.9%</em></div>
+      <div class="lbl">Best Accuracy</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">25,609</div>
+      <div class="lbl">Data Points</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">5</div>
+      <div class="lbl">ML Models</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">450</div>
+      <div class="lbl">Stocks</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-inner" id="ticker"></div>
+</div>
+
+<!-- DATASET SECTION -->
+<section id="dataset">
+  <div class="section-label">01 / Dataset</div>
+  <h2>3,500 Rows of<br>Market Intelligence</h2>
+  <p class="section-desc">
+    A structured stock dataset spanning 450 unique stocks with 14 engineered features — from raw OHLCV data to derived momentum and trend signals.
+  </p>
+
+  <div class="cards-grid fade-in">
+    <div class="stat-card">
+      <div class="card-lbl"><span class="dot" style="background:var(--teal)"></span>Rows</div>
+      <div class="card-val">3,500</div>
+      <div class="card-sub">original dataset</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-lbl"><span class="dot" style="background:var(--accent2)"></span>Extended</div>
+      <div class="card-val">25,609</div>
+      <div class="card-sub">after feature gen</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-lbl"><span class="dot" style="background:var(--amber)"></span>Stocks</div>
+      <div class="card-val">450</div>
+      <div class="card-sub">unique tickers</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-lbl"><span class="dot" style="background:var(--green)"></span>Features</div>
+      <div class="card-val">14</div>
+      <div class="card-sub">incl. engineered</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-lbl"><span class="dot" style="background:var(--red)"></span>Date Range</div>
+      <div class="card-val" style="font-size:1.1rem; padding-top: 0.4rem;">Jan–Apr</div>
+      <div class="card-sub">2026 trading data</div>
+    </div>
+  </div>
+
+  <table class="features-table fade-in">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>Type</th>
+        <th>Range / Values</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>DATE</td><td><span class="badge badge-cat">categorical</span></td><td>Jan–Apr 2026</td><td>Trading date</td></tr>
+      <tr><td>STOCK</td><td><span class="badge badge-cat">categorical</span></td><td>450 tickers</td><td>Stock symbol identifier</td></tr>
+      <tr><td>OPEN_PRICE</td><td><span class="badge badge-num">numeric</span></td><td>0.32 – 5,600</td><td>Opening price of trading session</td></tr>
+      <tr><td>HIGH_PRICE</td><td><span class="badge badge-num">numeric</span></td><td>0.35 – 5,653</td><td>Session high price</td></tr>
+      <tr><td>LOW_PRICE</td><td><span class="badge badge-num">numeric</span></td><td>0.30 – 5,574</td><td>Session low price</td></tr>
+      <tr><td>CLOSE_PRICE</td><td><span class="badge badge-num">numeric</span></td><td>0.32 – 5,600</td><td>Closing price</td></tr>
+      <tr><td>VOLUME</td><td><span class="badge badge-num">numeric</span></td><td>1 – 12.75B</td><td>Trading volume</td></tr>
+      <tr><td>RETURN</td><td><span class="badge badge-num">numeric</span></td><td>-0.11 – 0.27</td><td>Daily return rate</td></tr>
+      <tr><td>VOLATILITY_7D</td><td><span class="badge badge-num">numeric</span></td><td>0 – 0.127</td><td>7-day rolling volatility</td></tr>
+      <tr><td>PRICE_CHANGE</td><td><span class="badge badge-num">numeric</span></td><td>-231 – 200</td><td>Absolute price change</td></tr>
+      <tr><td>MA_7</td><td><span class="badge badge-num">numeric</span></td><td>0.38 – 5,538</td><td>7-day moving average</td></tr>
+      <tr><td>MA_30</td><td><span class="badge badge-num">numeric</span></td><td>0.64 – 5,381</td><td>30-day moving average</td></tr>
+      <tr><td>TREND</td><td><span class="badge badge-target">target</span></td><td>True / False</td><td>Upward trend signal (classification target)</td></tr>
+      <tr><td>MOMENTUM</td><td><span class="badge badge-num">numeric</span></td><td>-0.10 – 0.10</td><td>Price momentum indicator</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Trend Distribution Chart -->
+  <div class="chart-wrapper fade-in">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Trend Distribution</div>
+        <div class="chart-sub">Class balance across 3,500 training samples</div>
+      </div>
+      <div style="display:flex; gap: 16px; font-size: 0.75rem;">
+        <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#7f6ef7"></span>Trend (1,700)</span>
+        <span style="display:flex; align-items:center; gap:5px;"><span style="width:10px;height:10px;border-radius:2px;background:#2d2a45"></span>No Trend (1,800)</span>
+      </div>
+    </div>
+    <div style="position:relative; height: 200px;">
+      <canvas id="trendChart" role="img" aria-label="Donut chart showing 1700 trend vs 1800 no-trend samples">Trend: 1700, No Trend: 1800</canvas>
+    </div>
+  </div>
+</section>
+
+<!-- MODELS SECTION -->
+<section id="models">
+  <div class="section-label">02 / Models</div>
+  <h2>Five Algorithms.<br>One Competition.</h2>
+  <p class="section-desc">
+    From interpretable classifiers to neural networks — each model trained on 80% of the dataset and evaluated on the held-out 20%.
+  </p>
+
+  <div class="models-grid fade-in">
+
+    <div class="model-card best">
+      <div class="model-icon" style="background:rgba(127,110,247,0.15);">🧮</div>
+      <div class="model-name">Logistic Regression</div>
+      <div style="font-size:0.75rem; color:var(--text2);">Linear · Regularized · Balanced classes</div>
+      <div class="model-acc-row">
+        <div class="model-acc" style="color:var(--accent2);">92.9%</div>
+        <span class="badge" style="background:rgba(127,110,247,0.12); color:var(--accent2);">liblinear</span>
+      </div>
+      <div class="acc-bar-bg"><div class="acc-bar" style="width:92.9%; background: linear-gradient(90deg, #534ab7, #a899ff);"></div></div>
+      <div class="model-desc">StandardScaler normalized features. class_weight='balanced' for imbalanced correction. max_iter=1000.</div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-icon" style="background:rgba(61,227,158,0.1);">🌿</div>
+      <div class="model-name">Decision Tree</div>
+      <div style="font-size:0.75rem; color:var(--text2);">Non-linear · Interpretable · Rule-based</div>
+      <div class="model-acc-row">
+        <div class="model-acc" style="color:var(--green);">85.6%</div>
+      </div>
+      <div class="acc-bar-bg"><div class="acc-bar" style="width:85.6%; background: linear-gradient(90deg, #0f6e56, #3de39e);"></div></div>
+      <div class="model-desc">Recursive binary splitting on feature thresholds. High interpretability — outputs human-readable rules.</div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-icon" style="background:rgba(93,228,196,0.1);">📍</div>
+      <div class="model-name">K-Nearest Neighbors</div>
+      <div style="font-size:0.75rem; color:var(--text2);">Instance-based · k=5 · Distance metric</div>
+      <div class="model-acc-row">
+        <div class="model-acc" style="color:var(--teal);">82.1%</div>
+      </div>
+      <div class="acc-bar-bg"><div class="acc-bar" style="width:82.1%; background: linear-gradient(90deg, #0f6e56, #5de4c4);"></div></div>
+      <div class="model-desc">Euclidean distance on StandardScaler-normalized features. k=5 neighbors by majority vote.</div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-icon" style="background:rgba(247,201,110,0.1);">🧠</div>
+      <div class="model-name">Artificial Neural Network</div>
+      <div style="font-size:0.75rem; color:var(--text2);">Deep learning · 10 hidden neurons</div>
+      <div class="model-acc-row">
+        <div class="model-acc" style="color:var(--amber);">51.0%</div>
+      </div>
+      <div class="acc-bar-bg"><div class="acc-bar" style="width:51%; background: linear-gradient(90deg, #854f0b, #f7c96e);"></div></div>
+      <div class="model-desc">1 hidden layer, 10 neurons. Underperformed — likely needs more data, tuning, or deeper architecture.</div>
+    </div>
+
+    <div class="model-card">
+      <div class="model-icon" style="background:rgba(247,110,110,0.1);">📊</div>
+      <div class="model-name">Gaussian Naive Bayes</div>
+      <div style="font-size:0.75rem; color:var(--text2);">Probabilistic · Assumes independence</div>
+      <div class="model-acc-row">
+        <div class="model-acc" style="color:var(--red);">50.4%</div>
+      </div>
+      <div class="acc-bar-bg"><div class="acc-bar" style="width:50.4%; background: linear-gradient(90deg, #992d2d, #f76e6e);"></div></div>
+      <div class="model-desc">Assumes Gaussian feature distributions. Feature correlations in stock data violate its independence assumption.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- RESULTS SECTION -->
+<section id="results">
+  <div class="section-label">03 / Results</div>
+  <h2>Model Comparison &amp;<br>Performance Analysis</h2>
+  <p class="section-desc">
+    Logistic Regression dominates with 92.9% accuracy. Tree-based and distance methods follow. Probabilistic models struggle with correlated features.
+  </p>
+
+  <div class="chart-wrapper fade-in">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">Accuracy Comparison</div>
+        <div class="chart-sub">All five models — 80/20 train-test split</div>
+      </div>
+    </div>
+    <div style="position:relative; height: 280px;">
+      <canvas id="accChart" role="img" aria-label="Horizontal bar chart: Logistic Regression 92.9%, Decision Tree 85.6%, KNN 82.1%, ANN 51%, Gaussian Naive Bayes 50.4%">Logistic Regression 92.9, Decision Tree 85.6, KNN 82.1, ANN 51.0, Gaussian NB 50.4</canvas>
+    </div>
+  </div>
+
+  <!-- Confusion Matrix + KNN detail side by side -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;" class="fade-in">
+    <div class="chart-wrapper" style="margin-bottom:0">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Decision Tree — Confusion Matrix</div>
+          <div class="chart-sub">Predicted vs actual trend classes</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-width: 320px; margin: 0 auto;">
+        <div style="text-align:center; font-size:0.68rem; color: var(--text2); padding: 0.3rem; letter-spacing: 0.06em; text-transform: uppercase;">Pred: Negative</div>
+        <div style="text-align:center; font-size:0.68rem; color: var(--text2); padding: 0.3rem; letter-spacing: 0.06em; text-transform: uppercase;">Pred: Positive</div>
+
+        <div class="matrix-cell tn">
+          <div class="mc-num">298</div>
+          <div class="mc-lbl">True Negative</div>
+        </div>
+        <div class="matrix-cell fp">
+          <div class="mc-num">55</div>
+          <div class="mc-lbl">False Positive</div>
+        </div>
+        <div class="matrix-cell fn">
+          <div class="mc-num">47</div>
+          <div class="mc-lbl">False Negative</div>
+        </div>
+        <div class="matrix-cell tp">
+          <div class="mc-num">300</div>
+          <div class="mc-lbl">True Positive</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-wrapper" style="margin-bottom:0">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">KNN — Classification Report</div>
+          <div class="chart-sub">k=5, accuracy 82.1%</div>
+        </div>
+      </div>
+      <div style="font-size:0.8rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+          <div style="color:var(--text2); font-size:0.68rem; letter-spacing:0.06em; text-transform:uppercase;">Class</div>
+          <div style="color:var(--text2); font-size:0.68rem; text-align:center;">Precision</div>
+          <div style="color:var(--text2); font-size:0.68rem; text-align:center;">Recall</div>
+          <div style="color:var(--text2); font-size:0.68rem; text-align:center;">F1</div>
+        </div>
+        <div style="height:1px; background:var(--border); margin-bottom:8px;"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+          <div>False</div>
+          <div style="text-align:center; color:var(--teal);">0.80</div>
+          <div style="text-align:center; color:var(--teal);">0.87</div>
+          <div style="text-align:center; color:var(--teal);">0.83</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+          <div>True</div>
+          <div style="text-align:center; color:var(--accent2);">0.85</div>
+          <div style="text-align:center; color:var(--accent2);">0.78</div>
+          <div style="text-align:center; color:var(--accent2);">0.81</div>
+        </div>
+        <div style="height:1px; background:var(--border); margin: 8px 0;"></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px;">
+          <div style="color:var(--text2);">macro avg</div>
+          <div style="text-align:center;">0.82</div>
+          <div style="text-align:center;">0.82</div>
+          <div style="text-align:center;">0.82</div>
+        </div>
+        <div style="margin-top: 1.5rem; padding: 0.75rem; background: rgba(61,227,158,0.05); border-radius: 8px; border: 1px solid rgba(61,227,158,0.1); font-size: 0.78rem; color:var(--text2);">
+          <span style="color:var(--green); font-weight:500;">306</span> TN · <span style="color:var(--teal); font-weight:500;">269</span> TP · <span style="color:var(--red); font-weight:500;">47</span> FP · <span style="color:var(--amber); font-weight:500;">78</span> FN
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSIGHTS SECTION -->
+<section id="insights">
+  <div class="section-label">04 / Insights</div>
+  <h2>Key Takeaways</h2>
+  <p class="section-desc">
+    Observations from training and evaluation across all five machine learning models.
+  </p>
+
+  <div class="insights-grid fade-in">
+    <div class="insight-card">
+      <h3><span class="icon-circle" style="background:rgba(127,110,247,0.15); color:var(--accent2);">🏆</span>Winner: Logistic Regression</h3>
+      <p>Despite being the simplest model, Logistic Regression achieved 92.9% accuracy. Feature scaling and class balancing were critical to its success, suggesting the decision boundary between trend/no-trend is largely linear in feature space.</p>
+    </div>
+    <div class="insight-card">
+      <h3><span class="icon-circle" style="background:rgba(247,201,110,0.1); color:var(--amber);">⚡</span>ANN Underperformance</h3>
+      <p>The Artificial Neural Network (10 hidden neurons, single layer) scored only 51% — barely above chance. With 3,500 training samples and limited depth, it couldn't generalize. Deeper architectures and larger datasets would likely improve this significantly.</p>
+    </div>
+    <div class="insight-card">
+      <h3><span class="icon-circle" style="background:rgba(61,227,158,0.1); color:var(--green);">🌿</span>Feature Correlations</h3>
+      <p>Gaussian Naive Bayes (50.4%) exposed a key dataset characteristic: stock market features like MA_7, MA_30, and MOMENTUM are highly correlated. The independence assumption inherent to Naive Bayes is fundamentally violated here.</p>
+    </div>
+    <div class="insight-card">
+      <h3><span class="icon-circle" style="background:rgba(93,228,196,0.1); color:var(--teal);">📈</span>Target Balance</h3>
+      <p>1,800 "No Trend" vs 1,700 "Trend" samples — a near-perfect 51/49 split. This balanced class distribution simplified training and means accuracy is a reliable metric, unlike in typical imbalanced financial datasets.</p>
+    </div>
+  </div>
+
+  <!-- Final recommendation card -->
+  <div style="margin-top: 1rem; background: linear-gradient(135deg, rgba(127,110,247,0.08) 0%, rgba(61,227,158,0.04) 100%); border: 1px solid rgba(127,110,247,0.25); border-radius: 12px; padding: 2rem;" class="fade-in">
+    <div style="display:flex; align-items: flex-start; gap: 1.5rem;">
+      <div style="font-size: 2.5rem; line-height:1;">🎯</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:600; margin-bottom:0.5rem;">Production Recommendation</div>
+        <p style="font-size:0.85rem; color:var(--text2); max-width: 600px; line-height: 1.8;">
+          Deploy <strong style="color:var(--accent2);">Logistic Regression</strong> as the primary model (92.9% accuracy) with <strong style="color:var(--green);">Decision Tree</strong> as a secondary interpretable alternative (85.6%). The Decision Tree's rule structure makes it valuable for explainability and compliance use cases. Consider ensemble methods (Random Forest, Gradient Boosting) as a next iteration to potentially surpass 95%.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <strong>StockML</strong> — Machine Learning Stock Trend Prediction
+  </div>
+  <div>Built from Jupyter notebook · 5 models · 25,609 records · 2026</div>
+</footer>
+
+<script>
+  // TICKER
+  const stocks = [
+    {sym:'00DS30', price:'1869.42', chg:'+15.88', up:true},
+    {sym:'00DSES', price:'1006.00', chg:'+5.28', up:true},
+    {sym:'00DSEX', price:'4910.61', chg:'+45.27', up:true},
+    {sym:'WEBCOATS', price:'247.30', chg:'-2.10', up:false},
+    {sym:'DSSL', price:'88.50', chg:'+1.75', up:true},
+    {sym:'ABBLPBOND', price:'1142.00', chg:'-8.30', up:false},
+    {sym:'1JANATAMF', price:'2.50', chg:'-0.10', up:false},
+    {sym:'MOMENTUM', price:'318.44', chg:'+4.55', up:true},
+  ];
+  const ticker = document.getElementById('ticker');
+  const items = [...stocks, ...stocks].map(s =>
+    `<span class="ticker-item"><span class="sym">${s.sym}</span><span class="${s.up?'up':'down'}">${s.chg}%</span><span>${s.price}</span></span>`
+  ).join('');
+  ticker.innerHTML = items + items;
+
+  // TREND CHART
+  new Chart(document.getElementById('trendChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Trend', 'No Trend'],
+      datasets: [{
+        data: [1700, 1800],
+        backgroundColor: ['#7f6ef7', '#2d2a45'],
+        borderColor: ['#a899ff', '#534ab7'],
+        borderWidth: 1,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${ctx.raw.toLocaleString()} (${(ctx.raw/3500*100).toFixed(1)}%)`
+          }
+        }
+      }
+    }
+  });
+
+  // ACCURACY CHART
+  const models = ['Logistic Regression','Decision Tree','K-Nearest Neighbors','Artificial Neural Network','Gaussian Naive Bayes'];
+  const accs = [92.86, 85.57, 82.14, 51.0, 50.43];
+  const colors = ['#7f6ef7','#3de39e','#5de4c4','#f7c96e','#f76e6e'];
+
+  new Chart(document.getElementById('accChart'), {
+    type: 'bar',
+    data: {
+      labels: models,
+      datasets: [{
+        label: 'Accuracy (%)',
+        data: accs,
+        backgroundColor: colors.map(c => c + '22'),
+        borderColor: colors,
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw.toFixed(1)}%` } }
+      },
+      scales: {
+        x: {
+          min: 40, max: 100,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#9895b5', callback: v => v + '%' },
+          border: { color: 'rgba(255,255,255,0.08)' }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: '#f0eff7', font: { size: 12 } },
+          border: { color: 'rgba(255,255,255,0.08)' }
+        }
+      }
+    }
+  });
+
+  // SCROLL ANIMATIONS
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

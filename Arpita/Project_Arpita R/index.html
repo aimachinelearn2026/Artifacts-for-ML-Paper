@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<!-- saved from url=(0074)https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+ENHANCED MACHINE LEARNING APPROACH FOR ACCURATE HEART DISEASE DIAGNOSIS
+</title>
+
+<link href="./index_files/css2" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+/* BODY */
+
+body{
+    font-family:'Poppins', sans-serif;
+    background:linear-gradient(to right, #eef2ff, #f8fafc);
+    color:#1e293b;
+    line-height:1.8;
+}
+
+/* NAVBAR */
+
+.navbar{
+    background:rgba(15,23,42,0.95);
+    padding:18px;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+
+.navbar ul{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    list-style:none;
+}
+
+.navbar ul li{
+    margin:6px 12px;
+}
+
+.navbar ul li a{
+    color:white;
+    text-decoration:none;
+    padding:10px 18px;
+    border-radius:30px;
+    font-size:15px;
+    font-weight:500;
+    transition:0.3s ease;
+}
+
+.navbar ul li a:hover{
+    background:#2563eb;
+}
+
+/* CONTAINER */
+
+.container{
+    width:92%;
+    margin:auto;
+    padding:40px 0;
+}
+
+/* SECTIONS */
+
+section{
+    background:white;
+    padding:35px;
+    margin-bottom:35px;
+    border-radius:20px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.08);
+}
+
+/* HEADINGS */
+
+h1{
+    text-align:center;
+    font-size:42px;
+    color:#0f172a;
+    margin-bottom:25px;
+    font-weight:700;
+}
+
+h2{
+    color:#2563eb;
+    margin-bottom:20px;
+    font-size:30px;
+    border-left:6px solid #2563eb;
+    padding-left:15px;
+}
+
+h3{
+    color:#0f172a;
+    margin-top:25px;
+    margin-bottom:15px;
+    font-size:22px;
+}
+
+h4{
+    color:#2563eb;
+    margin-top:15px;
+    margin-bottom:10px;
+}
+
+/* TEXT */
+
+p{
+    font-size:16px;
+    margin-bottom:18px;
+    color:#475569;
+}
+
+ul{
+    margin-left:25px;
+    margin-bottom:20px;
+}
+
+ul li{
+    margin-bottom:10px;
+}
+
+/* TABLE */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:25px;
+}
+
+table th{
+    background:linear-gradient(to right, #2563eb, #1d4ed8);
+    color:white;
+    padding:16px;
+}
+
+table td{
+    padding:15px;
+    text-align:center;
+    border:1px solid #ddd;
+}
+
+table tr:nth-child(even){
+    background:#f8fafc;
+}
+
+/* CODE */
+
+pre{
+    background:#0f172a;
+    color:#f8fafc;
+    padding:22px;
+    border-radius:15px;
+    overflow-x:auto;
+    margin-top:20px;
+}
+
+/* IMAGES */
+
+img{
+    width:100%;
+    max-width:850px;
+    display:block;
+    margin:25px auto;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.18);
+}
+
+hr{
+    margin:45px 0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+/* LIGHT BLUE FOOTER */
+
+.footer{
+    background:#60a5fa;
+    color:white;
+    text-align:center;
+    padding:18px;
+    margin-top:40px;
+    font-size:16px;
+    font-weight:500;
+    border-radius:12px 12px 0 0;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<div class="navbar">
+
+<ul>
+
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#overview">Overview</a></li>
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#objectives">Objectives</a></li>
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#dataset">Dataset</a></li>
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#visualization">Visualization</a></li>
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#algorithms">Algorithms</a></li>
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#results">Results</a></li>
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#conclusion">Conclusion</a></li>
+<li><a href="https://heart-disease-prediction-ml-psi.vercel.app/?utm_source=chatgpt.com#future">Future Work</a></li>
+
+</ul>
+
+</div>
+
+<!-- CONTAINER -->
+
+<div class="container">
+
+<!-- OVERVIEW -->
+
+<section id="overview">
+
+<h1>
+ENHANCED MACHINE LEARNING APPROACH FOR ACCURATE HEART DISEASE DIAGNOSIS
+</h1>
+
+<h2>1. Project Overview</h2>
+
+<p>
+This project focuses on predicting heart disease using Machine Learning algorithms.
+The system analyzes patient medical data such as age, cholesterol, blood pressure, heart rate, and chest pain to predict whether a patient has heart disease or not.
+</p>
+
+<p>
+Different Machine Learning algorithms such as KNN, Logistic Regression, Decision Tree, Random Forest, SVM, Gradient Boosting, and Voting Classifier are implemented and compared.
+</p>
+
+<p>
+Feature Scaling, PCA, and preprocessing techniques are applied to improve prediction accuracy.
+Among all models, Support Vector Machine (SVM) achieved the highest accuracy of 98%.
+</p>
+
+</section>
+
+<!-- OBJECTIVES -->
+
+<section id="objectives">
+
+<h2>2. Objectives</h2>
+
+<ul>
+
+<li>Predict heart disease using Machine Learning algorithms</li>
+<li>Improve prediction accuracy using advanced models</li>
+<li>Compare the performance of different algorithms</li>
+<li>Apply data preprocessing and feature scaling</li>
+<li>Implement ensemble learning techniques</li>
+<li>Assist in early heart disease diagnosis</li>
+
+</ul>
+
+</section>
+
+<!-- DATASET -->
+
+<section id="dataset">
+
+<h2>3. Dataset Description</h2>
+
+<table>
+
+<tbody><tr>
+<th>Feature</th>
+<th>Description</th>
+</tr>
+
+<tr>
+<td>Age</td>
+<td>Age of the patient</td>
+</tr>
+
+<tr>
+<td>Sex</td>
+<td>Gender of the patient</td>
+</tr>
+
+<tr>
+<td>cp</td>
+<td>Chest pain type</td>
+</tr>
+
+<tr>
+<td>trestbps</td>
+<td>Resting blood pressure</td>
+</tr>
+
+<tr>
+<td>chol</td>
+<td>Serum cholesterol level</td>
+</tr>
+
+<tr>
+<td>thalach</td>
+<td>Maximum heart rate achieved</td>
+</tr>
+
+<tr>
+<td>target</td>
+<td>Presence or absence of heart disease</td>
+</tr>
+
+</tbody></table>
+
+</section>
+
+<!-- VISUALIZATION -->
+
+<section id="visualization">
+
+<h2>4. Data Visualization</h2>
+
+<h3>1. Model Accuracy Comparison</h3>
+
+<img src="./index_files/model_accuracy.png">
+<hr>
+
+<h3>2. Feature Correlation Heatmap</h3>
+
+<img src="./index_files/correlation_heatmap.png">
+
+<hr>
+
+<h3>3. Age vs Cholesterol Analysis</h3>
+
+
+<img src="./index_files/age_vs_cholesterol.png">
+
+<hr>
+
+<h3>4. Age Distribution</h3>
+
+<img src="./index_files/age_distribution.png">
+
+<hr>
+
+<h3>5. Prediction Distribution</h3>
+<img src="./index_files/prediction_distribution.png">
+
+</section>
+
+<!-- ALGORITHMS -->
+
+<section id="algorithms">
+
+<h2>5. Machine Learning Algorithms</h2>
+
+<h3>1. K-Nearest Neighbour (KNN)</h3>
+
+<pre>knn = KNeighborsClassifier(n_neighbors=5)
+
+knn.fit(X_train, y_train)
+
+y_pred_knn = knn.predict(X_test)
+
+print("KNN Accuracy:", accuracy_score(y_test, y_pred_knn))
+</pre>
+
+<h4>Description</h4>
+
+<ul>
+<li>Implemented the KNN algorithm for heart disease prediction.</li>
+<li>The model classifies patients based on nearest neighboring medical records.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>KNN achieved 95.4% accuracy.</li>
+<li>The model performed well in identifying heart disease patients.</li>
+</ul>
+
+<hr>
+
+<h3>2. Logistic Regression</h3>
+
+<pre>lr = LogisticRegression(max_iter=3000)
+
+lr.fit(X_train, y_train)
+
+y_pred_lr = lr.predict(X_test)
+</pre>
+
+<h4>Description</h4>
+
+<ul>
+<li>Implemented Logistic Regression for probability-based prediction.</li>
+<li>The model predicts the likelihood of heart disease occurrence.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>Logistic Regression achieved 86% accuracy.</li>
+<li>The model provided simple and interpretable predictions.</li>
+</ul>
+
+<hr>
+
+<h3>3. Decision Tree</h3>
+
+<pre>dt = DecisionTreeClassifier(max_depth=6)
+
+dt.fit(X_train, y_train)
+
+y_pred_dt = dt.predict(X_test)
+</pre>
+
+<h4>Description</h4>
+
+<ul>
+<li>Implemented Decision Tree classifier for rule-based prediction.</li>
+<li>The model creates decision rules using medical attributes.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>Decision Tree achieved 94% accuracy.</li>
+<li>The model effectively classified patients using decision rules.</li>
+</ul>
+
+<hr>
+
+<h3>4. Random Forest</h3>
+
+<pre>rf = RandomForestClassifier(n_estimators=500)
+
+rf.fit(X_train, y_train)
+
+y_pred_rf = rf.predict(X_test)
+</pre>
+
+<h4>Description</h4>
+
+<ul>
+<li>Implemented Random Forest ensemble classifier.</li>
+<li>Multiple decision trees were combined for prediction.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>Random Forest achieved 97% accuracy.</li>
+<li>Ensemble learning improved prediction performance and reduced overfitting.</li>
+</ul>
+
+<hr>
+
+<h3>5. Support Vector Machine (SVM)</h3>
+
+<pre>svm = SVC(kernel='rbf', C=20, probability=True)
+
+svm.fit(X_train, y_train)
+
+y_pred_svm = svm.predict(X_test)
+</pre>
+
+<h4>Description</h4>
+
+<ul>
+<li>Implemented Support Vector Machine using hyperplane classification.</li>
+<li>The model separates heart disease classes effectively.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>SVM achieved the highest accuracy of 98%.</li>
+<li>The model provided excellent classification performance.</li>
+</ul>
+
+<hr>
+
+<h3>6. Gradient Boosting</h3>
+
+<pre>gb = GradientBoostingClassifier()
+
+gb.fit(X_train, y_train)
+
+y_pred_gb = gb.predict(X_test)
+</pre>
+
+<h4>Description</h4>
+
+<ul>
+<li>Implemented Gradient Boosting classifier for sequential learning.</li>
+<li>Weak learners were combined to improve prediction accuracy.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>Gradient Boosting achieved 95% accuracy.</li>
+<li>Boosting techniques improved overall model performance.</li>
+</ul>
+
+<hr>
+
+<h3>7. Voting Classifier</h3>
+
+<pre>voting = VotingClassifier(
+estimators=[
+('rf', rf),
+('svm', svm),
+('gb', gb),
+('lr', lr)
+],
+voting='soft'
+)
+</pre>
+
+<h4>Description</h4>
+
+<ul>
+<li>Implemented Voting Classifier using multiple Machine Learning models.</li>
+<li>Combined predictions from several classifiers.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>Voting Classifier achieved 93% accuracy.</li>
+<li>Ensemble voting improved prediction stability and reliability.</li>
+</ul>
+
+</section>
+
+<!-- RESULTS -->
+
+<section id="results">
+
+<h2>6. Results and Performance Analysis</h2>
+
+<table>
+
+<tbody><tr>
+<th>Algorithm</th>
+<th>Usage in Dataset</th>
+<th>Accuracy</th>
+</tr>
+
+<tr>
+<td>K-Nearest Neighbour (KNN)</td>
+<td>Nearest neighbor-based heart disease classification</td>
+<td>95.4%</td>
+</tr>
+
+<tr>
+<td>Logistic Regression</td>
+<td>Probability-based heart disease prediction</td>
+<td>86%</td>
+</tr>
+
+<tr>
+<td>Decision Tree</td>
+<td>Rule-based patient classification</td>
+<td>94%</td>
+</tr>
+
+<tr>
+<td>Random Forest</td>
+<td>Multiple decision tree ensemble prediction</td>
+<td>97%</td>
+</tr>
+
+<tr>
+<td>Support Vector Machine (SVM)</td>
+<td>Hyperplane-based classification</td>
+<td>98%</td>
+</tr>
+
+<tr>
+<td>Gradient Boosting</td>
+<td>Boosting-based sequential learning</td>
+<td>95%</td>
+</tr>
+
+<tr>
+<td>Voting Classifier</td>
+<td>Combined ensemble prediction using multiple models</td>
+<td>93%</td>
+</tr>
+
+</tbody></table>
+
+<h4>Description</h4>
+
+<ul>
+<li>Multiple Machine Learning algorithms were implemented and evaluated for heart disease prediction.</li>
+<li>The performance of each model was compared using accuracy scores.</li>
+</ul>
+
+<h4>Inference</h4>
+
+<ul>
+<li>Support Vector Machine (SVM) achieved the highest accuracy of 98%.</li>
+<li>Random Forest also performed effectively with 97% accuracy.</li>
+<li>Ensemble and boosting techniques improved prediction performance significantly.</li>
+<li>Machine Learning models successfully predicted heart disease with high accuracy and reliability.</li>
+</ul>
+
+</section>
+
+<!-- CONCLUSION -->
+
+<section id="conclusion">
+
+<h2>7. Conclusion</h2>
+
+<p>
+This project successfully implemented advanced Machine Learning algorithms for heart disease prediction using patient medical data.
+</p>
+
+<p>
+Additional techniques such as preprocessing, feature scaling, PCA, and ensemble learning improved overall model performance and reliability.
+</p>
+
+<p>
+Support Vector Machine (SVM) achieved the highest accuracy of 98%.
+</p>
+
+</section>
+
+<!-- FUTURE -->
+
+<section id="future">
+
+<h2>8. Future Work</h2>
+
+<ul>
+
+<li>Implement Deep Learning models such as CNN and ANN</li>
+<li>Develop cloud-based healthcare systems</li>
+<li>Create real-time disease prediction applications</li>
+<li>Integrate wearable health monitoring devices</li>
+<li>Develop mobile healthcare applications</li>
+
+</ul>
+
+</section>
+
+</div>
+
+
+<footer class="footer">
+
+<p>
+© 2026 Enhanced Machine Learning Approach for Accurate Heart Disease Diagnosis
+</p>
+
+<p>
+Arpita Raykar | MSc Data Science| 2026
+</p>
+
+<p>
+ Chanakya University Global Campus,Bengaluru Rural,Karnataka
+</p>
+
+</footer>
+
+</body></html>

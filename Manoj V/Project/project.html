@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Website Detection using Machine Learning</title>
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family: Arial, sans-serif;
+            background:#f4f7fb;
+            color:#333;
+            line-height:1.8;
+        }
+
+        .header{
+            background:linear-gradient(135deg,#0f4c81,#1b6ca8);
+            color:white;
+            padding:40px;
+            text-align:center;
+        }
+
+        .header h1{
+            font-size:40px;
+            margin-bottom:10px;
+        }
+
+        .header p{
+            font-size:18px;
+        }
+
+        .container{
+            width:90%;
+            max-width:1200px;
+            margin:auto;
+            padding:30px 0;
+        }
+
+        .section{
+            background:white;
+            padding:30px;
+            margin-bottom:25px;
+            border-radius:12px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2{
+            color:#0f4c81;
+            margin-bottom:15px;
+            border-bottom:3px solid #0f4c81;
+            padding-bottom:8px;
+        }
+
+        h3{
+            margin-top:20px;
+            color:#1b6ca8;
+        }
+
+        p{
+            margin-top:10px;
+            text-align:justify;
+        }
+
+        ul{
+            margin-top:10px;
+            margin-left:25px;
+        }
+
+        li{
+            margin-bottom:8px;
+        }
+
+        .code-box{
+            background:#1e1e1e;
+            color:#00ff99;
+            padding:20px;
+            border-radius:10px;
+            overflow-x:auto;
+            margin-top:20px;
+            font-size:15px;
+        }
+
+        .result-box{
+            background:#eafaf1;
+            border-left:6px solid #28a745;
+            padding:20px;
+            margin-top:20px;
+            border-radius:8px;
+        }
+
+        .highlight{
+            color:#d63384;
+            font-weight:bold;
+        }
+
+        .image-box{
+            text-align:center;
+            margin-top:20px;
+        }
+
+        .image-box img{
+            width:70%;
+            border-radius:10px;
+            box-shadow:0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .footer{
+            background:#0f4c81;
+            color:white;
+            text-align:center;
+            padding:20px;
+            margin-top:40px;
+        }
+
+        .reference{
+            background:#f1f3f5;
+            padding:15px;
+            border-radius:8px;
+            margin-top:15px;
+        }
+
+        .tag{
+            display:inline-block;
+            background:#1b6ca8;
+            color:white;
+            padding:8px 14px;
+            margin:5px;
+            border-radius:20px;
+            font-size:14px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Phishing Website Detection using Machine Learning</h1>
+        <p>Cybersecurity Project using KNN and Logistic Regression</p>
+    </div>
+
+    <div class="container">
+
+        <!-- INTRODUCTION -->
+        <div class="section">
+            <h2>1. Introduction</h2>
+
+            <p>
+                Phishing is one of the most dangerous cybersecurity attacks where attackers create fake websites
+                that look similar to legitimate websites in order to steal sensitive information such as usernames,
+                passwords, and banking details.
+            </p>
+
+            <p>
+                As internet usage increases, phishing attacks are becoming more advanced and difficult to detect.
+                Traditional detection systems such as blacklist-based methods fail to identify newly created phishing websites,
+                also known as <span class="highlight">zero-day attacks</span>.
+            </p>
+
+            <p>
+                Machine Learning provides an intelligent solution to this problem by learning patterns from data
+                and automatically detecting malicious websites.
+            </p>
+        </div>
+
+        <!-- PROBLEM STATEMENT -->
+        <div class="section">
+            <h2>2. Problem Statement</h2>
+
+            <p>
+                Traditional phishing detection systems rely on manually maintained rules and blacklists.
+                These approaches fail when attackers continuously modify URLs and website structures.
+            </p>
+
+            <p>
+                Some major challenges include:
+            </p>
+
+            <ul>
+                <li>Detecting zero-day phishing attacks</li>
+                <li>Handling dynamically changing URLs</li>
+                <li>Reducing false positives</li>
+                <li>Automatically classifying websites in real time</li>
+            </ul>
+
+            <p>
+                Therefore, there is a need for an intelligent system capable of learning patterns
+                and accurately identifying phishing websites.
+            </p>
+        </div>
+
+        <!-- RESEARCH PAPER -->
+        <div class="section">
+            <h2>3. Research Paper Reference</h2>
+
+            <p>
+                This project is inspired by the research paper:
+            </p>
+
+            <div class="reference">
+                <strong>
+                    “Phishing Websites Classification using Hybrid SVM and KNN Approach”
+                </strong>
+                <br><br>
+                The paper proposes a hybrid model combining KNN and SVM algorithms for phishing website classification.
+                The model achieved around 90% accuracy.
+            </div>
+        </div>
+
+        <!-- DATASET -->
+        <div class="section">
+            <h2>4. Dataset Description</h2>
+
+            <p>
+                The dataset used in this project contains multiple features related to website behavior and URL structure.
+                These features help machine learning models distinguish between phishing and legitimate websites.
+            </p>
+
+            <h3>Important Features:</h3>
+
+            <ul>
+                <li>URL Length</li>
+                <li>HTTPS Usage</li>
+                <li>Domain Age</li>
+                <li>Website Traffic</li>
+                <li>Use of Special Characters</li>
+                <li>Redirecting URLs</li>
+            </ul>
+
+            <p>
+                The dataset is divided into:
+            </p>
+
+            <ul>
+                <li>80% Training Data</li>
+                <li>20% Testing Data</li>
+            </ul>
+        </div>
+
+        <!-- ALGORITHMS -->
+        <div class="section">
+            <h2>5. Machine Learning Algorithms</h2>
+
+            <h3>K-Nearest Neighbors (KNN)</h3>
+
+            <p>
+                KNN is a supervised learning algorithm that classifies data points based on similarity.
+                It identifies the nearest neighboring points and assigns the majority class.
+            </p>
+
+            <h3>Logistic Regression</h3>
+
+            <p>
+                Logistic Regression predicts the probability of a website being phishing or legitimate.
+                It is efficient and widely used for classification problems.
+            </p>
+        </div>
+
+        <!-- IMPLEMENTATION -->
+        <div class="section">
+            <h2>6. Implementation</h2>
+
+            <p>
+                Python and Scikit-learn libraries were used to implement the machine learning models.
+                The dataset was loaded, preprocessed, and divided into training and testing sets.
+            </p>
+
+            <div class="code-box">
+import pandas as pd<br><br>
+
+from sklearn.model_selection import train_test_split<br>
+from sklearn.neighbors import KNeighborsClassifier<br>
+from sklearn.linear_model import LogisticRegression<br>
+from sklearn.metrics import accuracy_score<br><br>
+
+data = pd.read_csv("phishing.csv")<br><br>
+
+X = data.drop("class", axis=1)<br>
+y = data["class"]<br><br>
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)<br><br>
+
+knn = KNeighborsClassifier(n_neighbors=5)<br>
+knn.fit(X_train, y_train)<br><br>
+
+lr = LogisticRegression(max_iter=1000)<br>
+lr.fit(X_train, y_train)
+            </div>
+
+        </div>
+
+        <!-- RESULTS -->
+        <div class="section">
+            <h2>7. Results and Analysis</h2>
+
+            <p>
+                The performance of the machine learning models was evaluated using accuracy metrics.
+            </p>
+
+            <div class="result-box">
+                <h3>Accuracy Results</h3>
+
+                <p><strong>KNN Accuracy:</strong> 93.98%</p>
+                <p><strong>Logistic Regression Accuracy:</strong> 93.35%</p>
+            </div>
+
+            <p>
+                The results indicate that KNN performs slightly better than Logistic Regression
+                for phishing website detection.
+            </p>
+
+            <div class="image-box">
+                <!-- Replace with your graph image -->
+                <img src="model_comparison.png" alt="Model Comparison Graph">
+                <p><strong>Figure:</strong> Accuracy Comparison Graph</p>
+            </div>
+
+        </div>
+
+        <!-- INFERENCE -->
+        <div class="section">
+            <h2>8. Inference</h2>
+
+            <p>
+                This project demonstrates that machine learning can effectively detect phishing websites
+                with high accuracy.
+            </p>
+
+            <p>
+                KNN performed slightly better because it classifies websites based on similarity patterns.
+                The results are comparable to the research paper and show that intelligent systems can improve cybersecurity.
+            </p>
+        </div>
+
+        <!-- FUTURE WORK -->
+        <div class="section">
+            <h2>9. Future Work</h2>
+
+            <ul>
+                <li>Implement Deep Learning models</li>
+                <li>Create real-time phishing detection systems</li>
+                <li>Develop browser extensions for protection</li>
+                <li>Improve dataset size and feature engineering</li>
+            </ul>
+        </div>
+
+        <!-- TECHNOLOGIES -->
+        <div class="section">
+            <h2>10. Technologies Used</h2>
+
+            <span class="tag">Python</span>
+            <span class="tag">Machine Learning</span>
+            <span class="tag">Scikit-learn</span>
+            <span class="tag">Pandas</span>
+            <span class="tag">Cybersecurity</span>
+            <span class="tag">HTML</span>
+            <span class="tag">CSS</span>
+        </div>
+
+        <!-- CONCLUSION -->
+        <div class="section">
+            <h2>11. Conclusion</h2>
+
+            <p>
+                Phishing attacks continue to be a major cybersecurity threat. This project successfully demonstrates
+                how machine learning techniques such as KNN and Logistic Regression can be used to detect phishing websites.
+            </p>
+
+            <p>
+                The results show that even simple machine learning algorithms can achieve high accuracy and provide
+                effective cybersecurity solutions.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <h3>Thank You</h3>
+        <p>Created by Manoj V</p>
+    </div>
+
+</body>
+</html>

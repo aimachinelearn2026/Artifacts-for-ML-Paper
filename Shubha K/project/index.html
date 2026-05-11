@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Student Performance Prediction using KNN</title>
+
+<style>
+
+:root{
+    --bg:#f4f6f9;
+    --text:#333;
+    --card:#ffffff;
+    --primary:#1abc9c;
+    --secondary:#3498db;
+}
+
+body.dark{
+    --bg:#1e1e1e;
+    --text:#f4f4f4;
+    --card:#2c2c2c;
+}
+
+body{
+    margin:0;
+    padding:0;
+    font-family:'Segoe UI',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    scroll-behavior:smooth;
+}
+
+/* NAVBAR */
+
+nav{
+    background:#2c3e50;
+    padding:15px;
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+
+nav a{
+    color:white;
+    text-decoration:none;
+    margin:0 15px;
+    font-weight:bold;
+}
+
+nav a:hover{
+    color:var(--primary);
+}
+
+.toggle-btn{
+    float:right;
+    border:none;
+    background:var(--primary);
+    color:white;
+    padding:8px 12px;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+/* HEADER */
+
+header{
+    background:linear-gradient(to right,var(--primary),var(--secondary));
+    color:white;
+    text-align:center;
+    padding:80px 20px;
+}
+
+header h1{
+    font-size:40px;
+}
+
+/* SECTION */
+
+section{
+    margin:25px;
+    padding:40px;
+    background:var(--card);
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+h2{
+    color:var(--secondary);
+}
+
+/* CARDS */
+
+.card-container{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-top:20px;
+}
+
+.card{
+    flex:1;
+    min-width:200px;
+    background:#ecf0f1;
+    padding:20px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.card:hover{
+    background:var(--primary);
+    color:white;
+}
+
+/* TABLE */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+table th{
+    background:var(--primary);
+    color:white;
+    padding:12px;
+}
+
+table td{
+    padding:12px;
+    text-align:center;
+    border:1px solid #ddd;
+}
+
+/* GALLERY */
+
+.gallery{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-top:20px;
+}
+
+.gallery img{
+    width:45%;
+    border-radius:10px;
+}
+
+/* BUTTON */
+
+.btn{
+    display:inline-block;
+    margin-top:20px;
+    background:var(--secondary);
+    color:white;
+    padding:10px 20px;
+    border-radius:5px;
+    text-decoration:none;
+}
+
+.btn:hover{
+    background:var(--primary);
+}
+
+/* CODE */
+
+pre{
+    background:#f4f4f4;
+    padding:20px;
+    border-radius:10px;
+    overflow:auto;
+    font-size:14px;
+}
+
+/* FOOTER */
+
+footer{
+    background:#2c3e50;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+
+<nav>
+
+<a href="#home">Home</a>
+<a href="#intro">Introduction</a>
+<a href="#problem">Problem</a>
+<a href="#dataset">Dataset</a>
+<a href="#method">Methodology</a>
+<a href="#implementation">Implementation</a>
+<a href="#code">Code</a>
+<a href="#results">Results</a>
+<a href="#conclusion">Conclusion</a>
+
+<button class="toggle-btn" onclick="toggleDark()">🌙</button>
+
+</nav>
+
+<!-- HEADER -->
+
+<header id="home">
+
+<h1>Student Performance Prediction</h1>
+
+<p>Using K-Nearest Neighbors (KNN) Algorithm</p>
+
+</header>
+
+<!-- INTRODUCTION -->
+
+<section id="intro">
+
+<h2>Introduction</h2>
+
+<p>
+Machine learning is widely used for analyzing data and making predictions.
+In education, it helps institutions identify student performance patterns and improve academic outcomes.
+</p>
+
+<p>
+This project focuses on predicting student performance using the K-Nearest Neighbors (KNN) algorithm.
+The model classifies students into pass or fail categories based on academic scores.
+</p>
+
+</section>
+
+<!-- PROBLEM -->
+
+<section id="problem">
+
+<h2>Problem Statement</h2>
+
+<p>
+Identifying weak students manually is difficult and time-consuming.
+Educational institutions require automated systems that can predict student performance accurately.
+</p>
+
+<p>
+The objective of this project is to build a machine learning model that predicts student outcomes using subject scores.
+</p>
+
+</section>
+
+<!-- DATASET -->
+
+<section id="dataset">
+
+<h2>Dataset</h2>
+
+<p>
+The dataset used in this project is the Students Performance dataset.
+It contains approximately 1000 student records with scores in math, reading, and writing subjects.
+</p>
+
+<div class="card-container">
+
+<div class="card">Math Score</div>
+<div class="card">Reading Score</div>
+<div class="card">Writing Score</div>
+
+</div>
+
+<h3>Features</h3>
+
+<ul>
+<li>Math Score</li>
+<li>Reading Score</li>
+<li>Writing Score</li>
+<li>Average Score</li>
+<li>Pass/Fail Result</li>
+</ul>
+
+<h3>Sample Dataset</h3>
+
+<table>
+
+<tr>
+<th>Math</th>
+<th>Reading</th>
+<th>Writing</th>
+<th>Result</th>
+</tr>
+
+<tr>
+<td>72</td>
+<td>75</td>
+<td>78</td>
+<td>Pass</td>
+</tr>
+
+<tr>
+<td>40</td>
+<td>45</td>
+<td>42</td>
+<td>Fail</td>
+</tr>
+
+<tr>
+<td>88</td>
+<td>90</td>
+<td>92</td>
+<td>Pass</td>
+</tr>
+
+<tr>
+<td>60</td>
+<td>62</td>
+<td>65</td>
+<td>Pass</td>
+</tr>
+
+</table>
+
+<br>
+
+<a href="StudentsPerformance.csv" download class="btn">
+Download Dataset
+</a>
+
+</section>
+
+<!-- METHODOLOGY -->
+
+<section id="method">
+
+<h2>Methodology</h2>
+
+<p>
+The K-Nearest Neighbors (KNN) algorithm is a supervised machine learning algorithm used for classification tasks.
+</p>
+
+<p>
+It works by measuring similarity between data points using Euclidean distance and selecting the nearest neighbors to predict class labels.
+</p>
+
+<p>
+The model uses majority voting among neighboring data points to classify students into pass or fail categories.
+</p>
+
+</section>
+
+<!-- IMPLEMENTATION -->
+
+<section id="implementation">
+
+<h2>Implementation</h2>
+
+<p>
+The project is implemented using Python in the Google Colab environment.
+The dataset is preprocessed by calculating average scores and converting categorical data into numerical format.
+</p>
+
+<p>
+The dataset is divided into training and testing sets, and the KNN model is trained using the sklearn library.
+The performance of the model is evaluated using accuracy and visualized using graphs.
+</p>
+
+</section>
+
+<!-- PROMPT + CODE + INFERENCE -->
+
+<section id="code">
+
+<h2>Prompt, Code and Inference</h2>
+
+<h3>Prompt</h3>
+
+<p>
+Build a machine learning model using the K-Nearest Neighbors (KNN) algorithm to predict student performance using academic scores.
+</p>
+
+<h3>Python Code</h3>
+
+<pre>
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+
+# Load Dataset
+df = pd.read_csv('StudentsPerformance.csv')
+
+# Create Average Score
+df['average'] = (
+    df['math score'] +
+    df['reading score'] +
+    df['writing score']
+) / 3
+
+# Create Pass/Fail Result
+df['result'] = df['average'].apply(
+    lambda x: 'Pass' if x >= 50 else 'Fail'
+)
+
+# Convert categorical data
+df = pd.get_dummies(df)
+
+# Features and Target
+X = df[['math score', 'reading score', 'writing score']]
+
+y = df['result_Pass']
+
+# Split Data
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)
+
+# Train Model
+model = KNeighborsClassifier(n_neighbors=5)
+
+model.fit(X_train, y_train)
+
+# Accuracy
+accuracy = model.score(X_test, y_test)
+
+print("Accuracy:", accuracy)
+
+</pre>
+
+<h3>Inference</h3>
+
+<p>
+The KNN algorithm successfully classified students into pass and fail categories based on academic scores.
+The model achieved good accuracy and demonstrated that machine learning techniques can effectively predict student performance.
+</p>
+
+</section>
+
+<!-- RESULTS -->
+
+<section id="results">
+
+<h2>Results and Analysis</h2>
+
+<p>
+The model achieved an accuracy of <b>91.23%</b>, indicating good prediction performance.
+</p>
+
+<p>
+The scatter plot shows the relationship between subject scores, while the heatmap highlights correlations between features.
+</p>
+
+<div class="gallery">
+
+<div>
+
+<img src="C:\Users\User\Pictures\graph2.png" alt="Scatter Plot">
+
+<p>
+Fig 1: Scatter plot showing relationship between student scores
+</p>
+
+</div>
+
+<div>
+
+<img src="C:\Users\User\Pictures\graph1.png" alt="Heatmap">
+
+<p>
+Fig 2: Heatmap showing feature correlation
+</p>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- CONCLUSION -->
+
+<section id="conclusion">
+
+<h2>Conclusion</h2>
+
+<p>
+This project demonstrates that the KNN algorithm is effective for predicting student performance based on academic data.
+</p>
+
+<p>
+It helps identify at-risk students and supports better decision-making in educational institutions.
+</p>
+
+<p>
+Future improvements can include larger datasets and advanced machine learning models.
+</p>
+
+</section>
+
+
+<script>
+
+function toggleDark(){
+    document.body.classList.toggle("dark");
+}
+
+</script>
+
+</body>
+</html>

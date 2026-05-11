@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Heart Disease Prediction - ML Project</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f6f8;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+        }
+        .prompt {
+            background: #eaf2ff;
+            padding: 10px;
+            border-left: 5px solid #3498db;
+            margin-bottom: 10px;
+        }
+        .code {
+            background: #272822;
+            color: #f8f8f2;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .inference {
+            background: #eafaf1;
+            padding: 10px;
+            border-left: 5px solid #2ecc71;
+            margin-top: 10px;
+        }
+        img {
+            max-width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Heart Disease Prediction using Logistic Regression</h1>
+
+<div class="section">
+    <h2>Objective</h2>
+    <div class="prompt">
+        Develop a machine learning model to predict heart disease using Logistic Regression. 
+        Perform preprocessing, feature selection, and evaluation.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Load Dataset</h2>
+    <div class="prompt">Prompt: Load dataset and display first rows</div>
+    <div class="code">
+import pandas as pd<br>
+df = pd.read_csv("heart.csv")<br>
+df.head()
+    </div>
+    <div class="inference">
+        Dataset successfully loaded with patient health data.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Data Exploration</h2>
+    <div class="prompt">Prompt: Display dataset structure</div>
+    <div class="code">
+df.info()
+    </div>
+    <div class="inference">
+        Dataset contains features like age, BP, cholesterol, smoking, etc.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Missing Values</h2>
+    <div class="prompt">Prompt: Check missing values</div>
+    <div class="code">
+df.isnull().sum()
+    </div>
+    <div class="inference">
+        Missing values are identified.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Data Cleaning</h2>
+    <div class="prompt">Prompt: Handle missing values</div>
+    <div class="code">
+df.fillna(df.mean(), inplace=True)
+    </div>
+    <div class="inference">
+        Missing values replaced with mean values.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Feature Scaling</h2>
+    <div class="prompt">Prompt: Apply scaling</div>
+    <div class="code">
+from sklearn.preprocessing import StandardScaler<br>
+scaler = StandardScaler()<br>
+X_scaled = scaler.fit_transform(df.drop('target', axis=1))
+    </div>
+    <div class="inference">
+        Data normalized for better performance.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Train Test Split</h2>
+    <div class="prompt">Prompt: Split dataset</div>
+    <div class="code">
+from sklearn.model_selection import train_test_split<br>
+X = df.drop('target', axis=1)<br>
+y = df['target']<br>
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    </div>
+    <div class="inference">
+        Data split into training and testing sets.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Logistic Regression</h2>
+    <div class="prompt">Prompt: Train Logistic Regression model</div>
+    <div class="code">
+from sklearn.linear_model import LogisticRegression<br>
+model = LogisticRegression()<br>
+model.fit(X_train, y_train)<br>
+y_pred = model.predict(X_test)
+    </div>
+    <div class="inference">
+        Model trained to classify heart disease.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Confusion Matrix</h2>
+    <div class="prompt">Prompt: Display confusion matrix</div>
+    <div class="code">
+from sklearn.metrics import confusion_matrix<br>
+cm = confusion_matrix(y_test, y_pred)
+    </div>
+
+    <!-- Add your screenshot here -->
+    <img src="confusion_matrix.png" alt="Confusion Matrix">
+
+    <div class="inference">
+        Shows correct and incorrect predictions.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Accuracy</h2>
+    <div class="prompt">Prompt: Calculate accuracy</div>
+    <div class="code">
+from sklearn.metrics import accuracy_score<br>
+accuracy_score(y_test, y_pred)
+    </div>
+    <div class="inference">
+        Model achieves approximately 88% accuracy.
+    </div>
+</div>
+
+<div class="section">
+    <h2>ROC Curve</h2>
+    <div class="prompt">Prompt: Plot ROC curve</div>
+    <div class="code">
+from sklearn.metrics import roc_curve, auc
+    </div>
+
+    <!-- Add your screenshot -->
+    <img src="roc_curve.png" alt="ROC Curve">
+
+    <div class="inference">
+        ROC curve shows model performance. AUC ≈ 0.74.
+    </div>
+</div>
+
+<div class="section">
+    <h2>Final Inference</h2>
+    <div class="inference">
+        Logistic Regression successfully predicts heart disease using patient data. 
+        Preprocessing and feature selection improve accuracy. 
+        Model is effective for early detection.
+    </div>
+</div>
+
+</body>
+</html>

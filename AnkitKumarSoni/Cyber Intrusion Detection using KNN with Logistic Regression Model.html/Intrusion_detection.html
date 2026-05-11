@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cyber Intrusion Detection — ML Assignment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-base:       #050a12;
+      --bg-deep:       #070d18;
+      --bg-card:       #0c1523;
+      --bg-card-hover: #111d30;
+      --border:        rgba(0,200,255,0.12);
+      --border-glow:   rgba(0,200,255,0.35);
+      --accent-cyan:   #00c8ff;
+      --accent-blue:   #0066ff;
+      --accent-purple: #7c3aed;
+      --accent-green:  #00e5a0;
+      --accent-red:    #ff4571;
+      --accent-gold:   #fbbf24;
+      --text-primary:  #e8f4ff;
+      --text-secondary:#8ba8c8;
+      --text-muted:    #4d6a85;
+      --console-bg:    #030810;
+      --console-border:#1a3a50;
+      --code-bg:       #06101e;
+      --radius-sm: 6px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─── ANIMATED BACKGROUND GRID ───────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(0,102,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, rgba(124,58,237,0.10) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ─── LAYOUT ──────────────────────────────────────────── */
+    .page-wrapper {
+      position: relative; z-index: 1;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(5,10,18,0.88);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 1060px; margin: 0 auto;
+      display: flex; align-items: center; gap: 6px;
+      overflow-x: auto; scrollbar-width: none;
+      padding: 10px 0;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      flex-shrink: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem; font-weight: 500;
+      color: var(--text-secondary);
+      background: rgba(0,200,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .nav-btn:hover {
+      background: rgba(0,200,255,0.12);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: translateY(-1px);
+    }
+
+    /* ─── HEADER ─────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      padding: 80px 0 60px;
+      position: relative;
+    }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 500;
+      color: var(--accent-cyan);
+      background: rgba(0,200,255,0.08);
+      border: 1px solid rgba(0,200,255,0.25);
+      border-radius: 100px;
+      padding: 6px 18px;
+      margin-bottom: 28px;
+      letter-spacing: 0.08em;
+    }
+    .header-badge::before { content: '◈'; font-size: 0.8em; }
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.9rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #e8f4ff 0%, var(--accent-cyan) 50%, var(--accent-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 18px;
+    }
+    .header-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+    }
+    .header-line {
+      width: 80px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+      margin: 28px auto 0;
+    }
+
+    /* ─── SECTION ─────────────────────────────────────────── */
+    .section {
+      margin-bottom: 32px;
+      scroll-margin-top: 70px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 40px;
+      transition: border-color 0.3s, background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .card:hover { border-color: var(--border-glow); background: var(--bg-card-hover); }
+    .card:hover::before { opacity: 1; }
+
+    /* ─── SECTION HEADING ─────────────────────────────────── */
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem; font-weight: 500;
+      color: var(--accent-cyan);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-tag::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border-glow), transparent);
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.45rem; font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+    }
+    .section-desc {
+      color: var(--text-secondary);
+      font-size: 0.93rem;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* ─── CODE BLOCKS ─────────────────────────────────────── */
+    .code-wrap {
+      position: relative;
+      margin: 16px 0;
+    }
+    .code-header {
+      display: flex; align-items: center; justify-content: space-between;
+      background: #071626;
+      border: 1px solid var(--console-border);
+      border-bottom: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      padding: 8px 16px;
+    }
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent-cyan);
+      letter-spacing: 0.06em;
+    }
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--console-border);
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      padding: 20px 24px;
+      overflow-x: auto;
+      position: relative;
+    }
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.75;
+      color: #c9e4ff;
+    }
+    .kw   { color: #79b8ff; }
+    .fn   { color: #b392f0; }
+    .str  { color: #9ecbff; }
+    .cm   { color: #4d6a85; font-style: italic; }
+    .num  { color: #79c0ff; }
+    .cls  { color: #ffa657; }
+
+    /* ─── COPY BTN ───────────────────────────────────────── */
+    .copy-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid var(--console-border);
+      border-radius: 4px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+    .copy-btn.copied { color: var(--accent-green); border-color: var(--accent-green); }
+
+    /* ─── CONSOLE OUTPUT ─────────────────────────────────── */
+    .console-wrap { margin: 20px 0; }
+    .console-header {
+      display: flex; align-items: center; gap: 10px;
+      background: #040c16;
+      border: 1px solid var(--console-border);
+      border-bottom: none;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      padding: 9px 16px;
+    }
+    .console-title-txt {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+    .console-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 6px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+    .console-output {
+      background: var(--console-bg);
+      border: 1px solid var(--console-border);
+      border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+      padding: 20px 24px;
+      overflow-x: auto;
+    }
+    .console-output pre {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      line-height: 1.8;
+      color: #7de3b4;
+    }
+    .out-head  { color: var(--accent-cyan); font-weight: 700; }
+    .out-label { color: #fbbf24; }
+    .out-val   { color: var(--accent-green); font-weight: 600; }
+    .out-sep   { color: var(--text-muted); }
+
+    /* ─── INFO BOX ───────────────────────────────────────── */
+    .info-box {
+      background: rgba(0,200,255,0.05);
+      border-left: 3px solid var(--accent-cyan);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+    .info-box strong { color: var(--accent-cyan); }
+
+    /* ─── PROMPT CARD ────────────────────────────────────── */
+    .prompt-line {
+      display: flex; gap: 10px;
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+    .prompt-line .arrow { color: var(--accent-blue); flex-shrink: 0; font-weight: 700; }
+    .prompt-line .text  { color: #a8c8f0; }
+
+    /* ─── SHAPE CHIPS ────────────────────────────────────── */
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .shape-chip {
+      background: rgba(0,200,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      text-align: center;
+    }
+    .shape-chip .var-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+    }
+    .shape-chip .var-shape {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ─── RESULT CARDS ───────────────────────────────────── */
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-top: 8px;
+    }
+    .result-card {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 28px 24px;
+      text-align: center;
+      transition: transform 0.25s, border-color 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .result-card:hover { transform: translateY(-4px); border-color: var(--border-glow); }
+    .result-card.best {
+      border-color: var(--accent-green);
+      background: rgba(0,229,160,0.05);
+    }
+    .result-card.best::after { background: var(--accent-green); }
+    .result-card:not(.best)::after { background: var(--accent-cyan); }
+
+    .best-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem; font-weight: 700;
+      color: var(--bg-base);
+      background: var(--accent-green);
+      border-radius: 100px;
+      padding: 3px 10px;
+      margin-bottom: 12px;
+      letter-spacing: 0.06em;
+    }
+    .result-model {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+    .result-acc {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.8rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .result-card.best .result-acc {
+      background: linear-gradient(135deg, var(--accent-green), #00c0a0);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    .result-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .acc-bar-wrap {
+      margin-top: 16px;
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .acc-bar {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+    .result-card.best .acc-bar {
+      background: linear-gradient(90deg, var(--accent-green), #00a884);
+    }
+
+    /* ─── EXPLANATION GRID ──────────────────────────────── */
+    .explain-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+    .explain-item {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 22px 22px;
+      transition: border-color 0.2s;
+    }
+    .explain-item:hover { border-color: var(--border-glow); }
+    .explain-icon {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+    }
+    .explain-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 8px;
+    }
+    .explain-text {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.75;
+    }
+
+    /* ─── INFERENCE POINTS ──────────────────────────────── */
+    .inference-list { list-style: none; margin-top: 8px; }
+    .inference-list li {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .inference-list li:last-child { border-bottom: none; }
+    .inf-icon {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      margin-top: 2px;
+    }
+
+    /* ─── FOOTER ─────────────────────────────────────────── */
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      position: relative; z-index: 1;
+    }
+    .footer-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+    .footer-accent { color: var(--accent-cyan); font-weight: 600; }
+    .footer-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── COMPARISON TABLE ──────────────────────────────── */
+    .cmp-table {
+      width: 100%; border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      margin-top: 28px;
+    }
+    .cmp-table th {
+      text-align: left; padding: 10px 14px;
+      color: var(--accent-cyan);
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+    .cmp-table th:not(:first-child) { text-align: center; }
+    .cmp-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .cmp-table td:not(:first-child) { text-align: center; }
+    .cmp-table tr.best-row td { background: rgba(0,229,160,0.05); color: var(--text-primary); }
+    .cmp-table tr.best-row td:first-child { color: var(--accent-green); font-weight: 700; }
+
+    /* ─── SCROLLBAR ─────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .card { padding: 24px 18px; }
+      pre, .console-output pre { font-size: 0.7rem; }
+      .result-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   S T I C K Y   N A V                               ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-btn" href="#prompt">Prompt</a>
+    <a class="nav-btn" href="#read-data">Read Data</a>
+    <a class="nav-btn" href="#understand">Understand</a>
+    <a class="nav-btn" href="#preprocess">Preprocess</a>
+    <a class="nav-btn" href="#split">Train-Test</a>
+    <a class="nav-btn" href="#knn-code">KNN Code</a>
+    <a class="nav-btn" href="#knn-output">KNN Output</a>
+    <a class="nav-btn" href="#lr-code">LR Code</a>
+    <a class="nav-btn" href="#lr-output">LR Output</a>
+    <a class="nav-btn" href="#explain">Explanation</a>
+    <a class="nav-btn" href="#results">Results</a>
+    <a class="nav-btn" href="#inference">Inference</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   H E A D E R                                       ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<header class="header" id="top">
+  <div class="header-badge">ML Assignment · Network Security</div>
+  <h1>Cyber Intrusion Detection<br/>using KNN &amp; Logistic Regression</h1>
+  <p class="header-sub">Machine Learning Assignment &nbsp;|&nbsp; Network Security Classification</p>
+  <div class="header-line"></div>
+</header>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   01 · PROMPT / INSTRUCTION                         ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="prompt">
+  <div class="card">
+    <p class="section-tag">01 — Instruction</p>
+    <h2 class="section-title">Prompt / Instruction</h2>
+    <p class="section-desc">The following AI instruction prompt defines the scope and objectives of this machine learning assignment.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="prompt-line"><span class="arrow">▸</span><span class="text">Build a machine learning model to detect cyber attacks using the KNN algorithm.</span></div>
+      <div class="prompt-line"><span class="arrow">▸</span><span class="text">Load and understand the dataset, examining its structure, data types, and feature distribution.</span></div>
+      <div class="prompt-line"><span class="arrow">▸</span><span class="text">Preprocess numerical and categorical features using StandardScaler and OneHotEncoder.</span></div>
+      <div class="prompt-line"><span class="arrow">▸</span><span class="text">Split the dataset into training and testing sets using an 80/20 ratio.</span></div>
+      <div class="prompt-line"><span class="arrow">▸</span><span class="text">Train the KNN model using different K values (k=5, k=3) and evaluate performance metrics.</span></div>
+      <div class="prompt-line"><span class="arrow">▸</span><span class="text">Extend the project using Logistic Regression and compare the results with KNN.</span></div>
+      <div class="prompt-line"><span class="arrow">▸</span><span class="text">Generate accuracy reports, confusion matrices, and draw a final inference on model performance.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   02 · READ THE DATA                                ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="read-data">
+  <div class="card">
+    <p class="section-tag">02 — Data Ingestion</p>
+    <h2 class="section-title">Read the Data</h2>
+    <p class="section-desc">
+      The dataset is loaded using the <strong style="color:var(--accent-cyan)">pandas</strong> library.
+      The CSV file contains labelled network traffic records used to classify connections as
+      normal or intrusive (attack). We inspect the first few rows to confirm the load was successful.
+    </p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="code-lang">python</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+<pre><code><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> warnings
+warnings.filterwarnings(<span class="str">'ignore'</span>)
+
+<span class="cm"># Load the dataset</span>
+df = pd.read_csv(<span class="str">'cyber_intrusion.csv'</span>)
+
+<span class="cm"># Preview the first few rows</span>
+<span class="fn">print</span>(<span class="str">"Shape of dataset:"</span>, df.shape)
+<span class="fn">print</span>(<span class="str">"\nFirst 5 rows:"</span>)
+<span class="fn">print</span>(df.head())
+
+<span class="cm"># Check for missing values</span>
+<span class="fn">print</span>(<span class="str">"\nMissing values per column:"</span>)
+<span class="fn">print</span>(df.isnull().<span class="fn">sum</span>())</code></pre>
+    </div>
+    <div class="info-box">
+      <strong>Note:</strong> The dataset contains network connection records with features such as protocol type,
+      service, flag, and various byte-count metrics. The target column indicates whether a connection
+      is <strong>normal (0)</strong> or an <strong>attack (1)</strong>.
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   03 · UNDERSTAND THE DATA                          ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="understand">
+  <div class="card">
+    <p class="section-tag">03 — Exploratory Analysis</p>
+    <h2 class="section-title">Understand the Data</h2>
+    <p class="section-desc">
+      Exploratory Data Analysis (EDA) helps us understand the structure, data types, and feature
+      distribution before modelling begins.
+    </p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="code-lang">python</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+<pre><code><span class="cm"># Dataset structure — data types and non-null counts</span>
+df.info()
+
+<span class="cm"># List all column names</span>
+<span class="fn">print</span>(<span class="str">"Columns:\n"</span>, df.columns.tolist())
+
+<span class="cm"># Basic descriptive statistics</span>
+<span class="fn">print</span>(<span class="str">"\nDescriptive statistics:"</span>)
+<span class="fn">print</span>(df.describe())
+
+<span class="cm"># Target class distribution</span>
+<span class="fn">print</span>(<span class="str">"\nClass distribution:"</span>)
+<span class="fn">print</span>(df[<span class="str">'label'</span>].value_counts())</code></pre>
+    </div>
+    <div class="info-box">
+      <strong>Dataset contains</strong> numerical and categorical features related to cyber intrusion detection.
+      Categorical features include <strong>protocol_type</strong>, <strong>service</strong>, and <strong>flag</strong>.
+      Numerical features include byte counts, packet durations, and connection rates.
+      The dataset is <strong>binary classified</strong> — 0 for normal traffic, 1 for attack traffic.
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   04 · DATA PREPROCESSING                           ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="preprocess">
+  <div class="card">
+    <p class="section-tag">04 — Feature Engineering</p>
+    <h2 class="section-title">Data Preprocessing</h2>
+    <p class="section-desc">
+      Raw data requires transformation before it can be used in ML models.
+      We apply <strong style="color:var(--accent-cyan)">StandardScaler</strong> to numerical columns
+      (zero mean, unit variance) and <strong style="color:var(--accent-cyan)">OneHotEncoder</strong>
+      to categorical columns. A <strong style="color:var(--accent-cyan)">ColumnTransformer</strong>
+      orchestrates both transformers in a single pipeline step.
+    </p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="code-lang">python</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+<pre><code><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler, OneHotEncoder
+<span class="kw">from</span> sklearn.compose    <span class="kw">import</span> ColumnTransformer
+
+<span class="cm"># Separate features and target variable</span>
+X = df.drop(<span class="str">'label'</span>, axis=<span class="num">1</span>)
+y = df[<span class="str">'label'</span>]
+
+<span class="cm"># Identify column types</span>
+categorical_cols = X.select_dtypes(include=[<span class="str">'object'</span>]).columns.tolist()
+numerical_cols   = X.select_dtypes(exclude=[<span class="str">'object'</span>]).columns.tolist()
+
+<span class="fn">print</span>(<span class="str">"Categorical columns:"</span>, categorical_cols)
+<span class="fn">print</span>(<span class="str">"Numerical  columns :"</span>, numerical_cols)
+
+<span class="cm"># Build ColumnTransformer pipeline</span>
+preprocessor = <span class="cls">ColumnTransformer</span>(transformers=[
+    (<span class="str">'num'</span>, <span class="cls">StandardScaler</span>(),                       numerical_cols),
+    (<span class="str">'cat'</span>, <span class="cls">OneHotEncoder</span>(handle_unknown=<span class="str">'ignore'</span>), categorical_cols)
+])
+
+<span class="cm"># Fit and transform feature matrix</span>
+X_processed = preprocessor.fit_transform(X)
+<span class="fn">print</span>(<span class="str">"\nProcessed feature shape:"</span>, X_processed.shape)</code></pre>
+    </div>
+    <div class="info-box">
+      <strong>StandardScaler</strong> ensures all numerical features contribute equally to distance calculations
+      in KNN. <strong>OneHotEncoder</strong> converts categorical labels into binary vectors so the model
+      can process them mathematically without introducing ordinal bias.
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   05 · TRAIN-TEST SPLIT                             ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="split">
+  <div class="card">
+    <p class="section-tag">05 — Dataset Partitioning</p>
+    <h2 class="section-title">Train-Test Split</h2>
+    <p class="section-desc">
+      The dataset is divided into <strong style="color:var(--accent-cyan)">training (80%)</strong> and
+      <strong style="color:var(--accent-cyan)">testing (20%)</strong> subsets using
+      <code style="color:var(--accent-green);font-family:'JetBrains Mono',monospace;font-size:0.82em">train_test_split</code>.
+      A fixed random state of 42 ensures reproducibility across runs.
+    </p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="code-lang">python</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+<pre><code><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_processed, y,
+    test_size=<span class="num">0.2</span>,
+    random_state=<span class="num">42</span>
+)
+
+<span class="fn">print</span>(<span class="str">"X_train shape:"</span>, X_train.shape)
+<span class="fn">print</span>(<span class="str">"X_test  shape:"</span>, X_test.shape)
+<span class="fn">print</span>(<span class="str">"y_train shape:"</span>, y_train.shape)
+<span class="fn">print</span>(<span class="str">"y_test  shape:"</span>, y_test.shape)</code></pre>
+    </div>
+    <div class="shape-grid">
+      <div class="shape-chip"><div class="var-name">X_train</div><div class="var-shape">(7632, N)</div></div>
+      <div class="shape-chip"><div class="var-name">X_test</div><div class="var-shape">(1908, N)</div></div>
+      <div class="shape-chip"><div class="var-name">y_train</div><div class="var-shape">(7632,)</div></div>
+      <div class="shape-chip"><div class="var-name">y_test</div><div class="var-shape">(1908,)</div></div>
+    </div>
+    <div class="info-box" style="margin-top:16px">
+      <strong>Inference:</strong> 80% of the data (7,632 samples) is used for training the model and 20%
+      (1,908 samples) is reserved for testing, providing a fair evaluation of model generalisation
+      on completely unseen data.
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   06 · KNN MODEL — GENERATED CODE                   ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="knn-code">
+  <div class="card">
+    <p class="section-tag">06 — Custom KNN Implementation</p>
+    <h2 class="section-title">KNN Model — Generated Code</h2>
+    <p class="section-desc">
+      A custom K-Nearest Neighbours classifier is implemented from scratch using Euclidean distance.
+      The implementation covers distance calculation, neighbour retrieval, and majority-vote prediction.
+    </p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="code-lang">python</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+<pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> collections <span class="kw">import</span> Counter
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> accuracy_score, classification_report, confusion_matrix
+
+<span class="cm"># ── Step 1: Euclidean Distance ────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">euclidean_distance</span>(a, b):
+    <span class="kw">return</span> np.sqrt(np.<span class="fn">sum</span>((a - b) ** <span class="num">2</span>))
+
+<span class="cm"># ── Step 2: Get K Nearest Neighbours ─────────────────────</span>
+<span class="kw">def</span> <span class="fn">get_neighbors</span>(X_train, y_train, test_point, k):
+    distances = []
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="fn">len</span>(X_train)):
+        dist = <span class="fn">euclidean_distance</span>(X_train[i], test_point)
+        distances.append((dist, y_train.iloc[i]))
+    distances.sort(key=<span class="kw">lambda</span> x: x[<span class="num">0</span>])
+    neighbors = [distances[i][<span class="num">1</span>] <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(k)]
+    <span class="kw">return</span> neighbors
+
+<span class="cm"># ── Step 3: Majority Vote Classification ─────────────────</span>
+<span class="kw">def</span> <span class="fn">predict_classification</span>(neighbors):
+    vote_counts = Counter(neighbors)
+    <span class="kw">return</span> vote_counts.most_common(<span class="num">1</span>)[<span class="num">0</span>][<span class="num">0</span>]
+
+<span class="cm"># ── Step 4: Full KNN Predict Pipeline ────────────────────</span>
+<span class="kw">def</span> <span class="fn">knn_predict</span>(X_train, y_train, X_test, k):
+    predictions = []
+    X_train_arr = X_train.toarray() <span class="kw">if</span> <span class="fn">hasattr</span>(X_train, <span class="str">'toarray'</span>) <span class="kw">else</span> np.array(X_train)
+    X_test_arr  = X_test.toarray()  <span class="kw">if</span> <span class="fn">hasattr</span>(X_test,  <span class="str">'toarray'</span>) <span class="kw">else</span> np.array(X_test)
+    <span class="kw">for</span> test_point <span class="kw">in</span> X_test_arr:
+        neighbors  = <span class="fn">get_neighbors</span>(X_train_arr, y_train, test_point, k)
+        prediction = <span class="fn">predict_classification</span>(neighbors)
+        predictions.append(prediction)
+    <span class="kw">return</span> predictions
+
+<span class="cm"># ── Step 5: Evaluate for k=5 and k=3 ─────────────────────</span>
+<span class="kw">for</span> k <span class="kw">in</span> [<span class="num">5</span>, <span class="num">3</span>]:
+    <span class="fn">print</span>(<span class="str">f"\n--- Evaluating Custom KNN with k={k} ---"</span>)
+    y_pred = <span class="fn">knn_predict</span>(X_train, y_train, X_test, k)
+    acc    = <span class="fn">accuracy_score</span>(y_test, y_pred)
+    <span class="fn">print</span>(<span class="str">f"Accuracy: {acc:.4f}"</span>)
+    <span class="fn">print</span>(<span class="str">"\nClassification Report:"</span>)
+    <span class="fn">print</span>(<span class="fn">classification_report</span>(y_test, y_pred))
+    <span class="fn">print</span>(<span class="str">"Confusion Matrix:"</span>)
+    <span class="fn">print</span>(<span class="fn">confusion_matrix</span>(y_test, y_pred))</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   07 · KNN MODEL — OUTPUT                           ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="knn-output">
+  <div class="card">
+    <p class="section-tag">07 — KNN Evaluation Results</p>
+    <h2 class="section-title">KNN Model — Output</h2>
+    <p class="section-desc">Console output produced by running the custom KNN implementation with k=5 and k=3.</p>
+
+    <div class="console-wrap">
+      <div class="console-header">
+        <div class="console-dot"></div>
+        <span class="console-title-txt">stdout — Custom KNN | k = 5</span>
+      </div>
+      <div class="console-output">
+<pre><span class="out-head">--- Evaluating Custom KNN with k=5 ---</span>
+<span class="out-label">Accuracy:</span> <span class="out-val">0.8055</span>
+
+<span class="out-label">Classification Report:</span>
+              precision    recall  f1-score   support
+
+           0       0.77      0.91      0.84      1042
+           1       0.87      0.68      0.76       866
+
+    accuracy                           0.81      1908
+   macro avg       0.82      0.79      0.80      1908
+weighted avg       0.81      0.81      0.80      1908
+
+<span class="out-label">Confusion Matrix:</span>
+[[951  91]
+ [280 586]]</pre>
+      </div>
+    </div>
+
+    <div class="console-wrap" style="margin-top:20px">
+      <div class="console-header">
+        <div class="console-dot"></div>
+        <span class="console-title-txt">stdout — Custom KNN | k = 3</span>
+      </div>
+      <div class="console-output">
+<pre><span class="out-head">--- Evaluating Custom KNN with k=3 ---</span>
+<span class="out-label">Accuracy:</span> <span class="out-val">0.7840</span>
+
+<span class="out-label">Classification Report:</span>
+              precision    recall  f1-score   support
+
+           0       0.77      0.87      0.81      1042
+           1       0.81      0.69      0.74       866
+
+    accuracy                           0.78      1908
+   macro avg       0.79      0.78      0.78      1908
+weighted avg       0.79      0.78      0.78      1908
+
+<span class="out-label">Confusion Matrix:</span>
+[[902 140]
+ [272 594]]</pre>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:20px">
+      <strong>Observation:</strong> KNN with k=5 achieves higher accuracy (80.55%) compared to k=3 (78.40%).
+      A larger K value reduces the effect of noisy data points by averaging over more neighbours,
+      leading to better generalisation on the test set.
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   08 · LOGISTIC REGRESSION — GENERATED CODE         ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="lr-code">
+  <div class="card">
+    <p class="section-tag">08 — Logistic Regression Implementation</p>
+    <h2 class="section-title">Logistic Regression — Generated Code</h2>
+    <p class="section-desc">
+      Logistic Regression is trained using sklearn's
+      <strong style="color:var(--accent-cyan)">LogisticRegression</strong> class.
+      It models the probability of an intrusion event using a sigmoid function
+      applied to a linear combination of input features.
+    </p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="code-lang">python</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+<pre><code><span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> LogisticRegression
+<span class="kw">from</span> sklearn.metrics     <span class="kw">import</span> accuracy_score, classification_report, confusion_matrix
+
+<span class="cm"># ── Initialise the model ──────────────────────────────────</span>
+lr_model = <span class="cls">LogisticRegression</span>(
+    max_iter=<span class="num">1000</span>,
+    random_state=<span class="num">42</span>,
+    solver=<span class="str">'lbfgs'</span>
+)
+
+<span class="cm"># ── Train on training set ─────────────────────────────────</span>
+lr_model.fit(X_train, y_train)
+<span class="fn">print</span>(<span class="str">"Logistic Regression model trained successfully.\n"</span>)
+
+<span class="cm"># ── Predict on test set ───────────────────────────────────</span>
+y_pred_lr = lr_model.predict(X_test)
+
+<span class="cm"># ── Compute evaluation metrics ────────────────────────────</span>
+acc_lr = <span class="fn">accuracy_score</span>(y_test, y_pred_lr)
+<span class="fn">print</span>(<span class="str">f"Accuracy of Logistic Regression: {acc_lr:.4f}\n"</span>)
+
+<span class="fn">print</span>(<span class="str">"Classification Report:"</span>)
+<span class="fn">print</span>(<span class="fn">classification_report</span>(y_test, y_pred_lr))
+
+<span class="fn">print</span>(<span class="str">"Confusion Matrix:"</span>)
+<span class="fn">print</span>(<span class="fn">confusion_matrix</span>(y_test, y_pred_lr))</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   09 · LOGISTIC REGRESSION — OUTPUT                 ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="lr-output">
+  <div class="card">
+    <p class="section-tag">09 — Logistic Regression Results</p>
+    <h2 class="section-title">Logistic Regression — Output</h2>
+    <p class="section-desc">Console output produced after training and evaluating the Logistic Regression model on the test set.</p>
+
+    <div class="console-wrap">
+      <div class="console-header">
+        <div class="console-dot"></div>
+        <span class="console-title-txt">stdout — Logistic Regression</span>
+      </div>
+      <div class="console-output">
+<pre><span class="out-val">Logistic Regression model trained successfully.</span>
+
+<span class="out-label">Accuracy of Logistic Regression:</span> <span class="out-val">0.7510</span>
+
+<span class="out-label">Classification Report:</span>
+              precision    recall  f1-score   support
+
+           0       0.75      0.82      0.78      1042
+           1       0.75      0.67      0.71       866
+
+    accuracy                           0.75      1908
+   macro avg       0.75      0.74      0.75      1908
+weighted avg       0.75      0.75      0.75      1908
+
+<span class="out-label">Confusion Matrix:</span>
+[[854 188]
+ [287 579]]</pre>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:20px">
+      <strong>Observation:</strong> Logistic Regression achieves 75.10% accuracy, lower than both KNN configurations.
+      However, it trains significantly faster and provides interpretable feature weights, making it
+      preferable in latency-sensitive deployment environments.
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   10 · CODE EXPLANATION                             ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="explain">
+  <div class="card">
+    <p class="section-tag">10 — Concepts Explained</p>
+    <h2 class="section-title">Code Explanation</h2>
+    <p class="section-desc">A concise, student-friendly breakdown of the algorithms and evaluation metrics used in this project.</p>
+    <div class="explain-grid">
+      <div class="explain-item">
+        <div class="explain-icon">🔵</div>
+        <div class="explain-title">KNN Algorithm</div>
+        <div class="explain-text">
+          KNN classifies a new data point by looking at the K closest training examples and
+          taking a majority vote. Closeness is measured using Euclidean distance. Smaller K captures
+          local patterns but is sensitive to noise; larger K smooths the boundary and generalises better.
+        </div>
+      </div>
+      <div class="explain-item">
+        <div class="explain-icon">📈</div>
+        <div class="explain-title">Logistic Regression</div>
+        <div class="explain-text">
+          Logistic Regression estimates the probability of a class using the sigmoid function
+          applied to a weighted sum of features. It is fast, interpretable, and works best when
+          data is linearly separable. Weights are learned via gradient-based optimisation.
+        </div>
+      </div>
+      <div class="explain-item">
+        <div class="explain-icon">🎯</div>
+        <div class="explain-title">Accuracy</div>
+        <div class="explain-text">
+          Accuracy = (Correct Predictions) / (Total Predictions). It tells us the overall
+          percentage of correctly classified samples. It can be misleading on imbalanced
+          datasets, so it is always reviewed alongside precision, recall, and F1-score.
+        </div>
+      </div>
+      <div class="explain-item">
+        <div class="explain-icon">🔍</div>
+        <div class="explain-title">Precision</div>
+        <div class="explain-text">
+          Precision = TP / (TP + FP). Of all instances the model labelled as "attack",
+          how many were genuine attacks? High precision minimises false alarms — critical
+          in security systems to avoid wasting analyst resources on benign traffic.
+        </div>
+      </div>
+      <div class="explain-item">
+        <div class="explain-icon">📡</div>
+        <div class="explain-title">Recall</div>
+        <div class="explain-text">
+          Recall = TP / (TP + FN). Of all actual attacks in the dataset, how many did
+          the model successfully detect? In cyber security, recall is often prioritised
+          over precision because missing a real attack can be catastrophic.
+        </div>
+      </div>
+      <div class="explain-item">
+        <div class="explain-icon">⚖️</div>
+        <div class="explain-title">F1-Score</div>
+        <div class="explain-text">
+          F1-Score = 2 × (Precision × Recall) / (Precision + Recall). The harmonic mean
+          of precision and recall. Useful as a single summary metric that penalises
+          extreme imbalances between false positives and false negatives.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   11 · RESULTS & ACCURACY COMPARISON                ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="results">
+  <div class="card">
+    <p class="section-tag">11 — Performance Comparison</p>
+    <h2 class="section-title">Results &amp; Accuracy Comparison</h2>
+    <p class="section-desc">
+      Summary of model accuracy across all configurations. KNN with k=5 achieves the best performance.
+    </p>
+
+    <div class="result-grid">
+      <div class="result-card best">
+        <div class="best-badge">★ BEST PERFORMANCE</div>
+        <div class="result-model">KNN (k = 5)</div>
+        <div class="result-acc">80.55%</div>
+        <div class="result-label">accuracy score</div>
+        <div class="acc-bar-wrap"><div class="acc-bar" style="width:0%" data-target="80.55%"></div></div>
+      </div>
+      <div class="result-card">
+        <div style="margin-bottom:12px;height:20px;"></div>
+        <div class="result-model">KNN (k = 3)</div>
+        <div class="result-acc">78.40%</div>
+        <div class="result-label">accuracy score</div>
+        <div class="acc-bar-wrap"><div class="acc-bar" style="width:0%" data-target="78.40%"></div></div>
+      </div>
+      <div class="result-card">
+        <div style="margin-bottom:12px;height:20px;"></div>
+        <div class="result-model">Logistic Regression</div>
+        <div class="result-acc">75.10%</div>
+        <div class="result-label">accuracy score</div>
+        <div class="acc-bar-wrap"><div class="acc-bar" style="width:0%" data-target="75.10%"></div></div>
+      </div>
+    </div>
+
+    <table class="cmp-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Accuracy</th>
+          <th>Precision (avg)</th>
+          <th>Recall (avg)</th>
+          <th>F1-Score (avg)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="best-row">
+          <td>KNN (k=5) ★</td>
+          <td>80.55%</td>
+          <td>0.82</td>
+          <td>0.79</td>
+          <td>0.80</td>
+        </tr>
+        <tr>
+          <td>KNN (k=3)</td>
+          <td>78.40%</td>
+          <td>0.79</td>
+          <td>0.78</td>
+          <td>0.78</td>
+        </tr>
+        <tr>
+          <td>Logistic Regression</td>
+          <td>75.10%</td>
+          <td>0.75</td>
+          <td>0.74</td>
+          <td>0.75</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   12 · FINAL INFERENCE                              ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<section class="section" id="inference">
+  <div class="card">
+    <p class="section-tag">12 — Conclusions</p>
+    <h2 class="section-title">Final Inference</h2>
+    <p class="section-desc">
+      Based on the experimental results, the following conclusions are drawn regarding model
+      suitability for cyber intrusion detection.
+    </p>
+    <ul class="inference-list">
+      <li>
+        <div class="inf-icon" style="background:rgba(0,229,160,0.12);color:var(--accent-green);">🏆</div>
+        <div>
+          <strong style="color:var(--text-primary);">KNN outperformed Logistic Regression across all metrics</strong><br/>
+          KNN (k=5) achieved 80.55% accuracy versus Logistic Regression's 75.10%. The non-parametric,
+          distance-based nature of KNN is better suited to capturing complex, non-linear decision
+          boundaries inherent in network intrusion data.
+        </div>
+      </li>
+      <li>
+        <div class="inf-icon" style="background:rgba(0,200,255,0.10);color:var(--accent-cyan);">⚙️</div>
+        <div>
+          <strong style="color:var(--text-primary);">K value significantly affects model performance</strong><br/>
+          Increasing K from 3 to 5 improved accuracy from 78.40% to 80.55%. A larger K smooths the
+          decision boundary, reduces sensitivity to outlier points, and leads to more stable and
+          reliable predictions on unseen traffic samples.
+        </div>
+      </li>
+      <li>
+        <div class="inf-icon" style="background:rgba(0,102,255,0.12);color:var(--accent-blue);">🛡️</div>
+        <div>
+          <strong style="color:var(--text-primary);">KNN is effective for cyber intrusion detection tasks</strong><br/>
+          The instance-based memory of KNN allows it to identify unusual network patterns that
+          deviate from known normal behaviour. This makes it a strong candidate for anomaly
+          detection tasks in network security where reference patterns are well-defined.
+        </div>
+      </li>
+      <li>
+        <div class="inf-icon" style="background:rgba(251,191,36,0.10);color:var(--accent-gold);">⚡</div>
+        <div>
+          <strong style="color:var(--text-primary);">Logistic Regression provides faster inference but lower accuracy</strong><br/>
+          While Logistic Regression trains and predicts substantially faster due to its linear
+          formulation, it lacks the flexibility to model complex feature interactions. It is
+          more suitable for real-time or resource-constrained deployments where speed and
+          interpretability are prioritised over raw classification accuracy.
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+</div><!-- /page-wrapper -->
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║   F O O T E R                                       ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+
+
+<!-- ── SCRIPTS ──────────────────────────────────────────── -->
+<script>
+  /* Copy Code Blocks */
+  function copyCode(btn) {
+    const pre  = btn.closest('.code-wrap').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'copy';
+        btn.classList.remove('copied');
+      }, 2200);
+    }).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2200);
+    });
+  }
+
+  /* Animate accuracy bars on scroll into view */
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.acc-bar[data-target]').forEach(bar => {
+          const target = bar.getAttribute('data-target');
+          setTimeout(() => { bar.style.width = target; }, 150);
+        });
+        barObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.25 });
+
+  document.querySelectorAll('.result-grid').forEach(el => barObserver.observe(el));
+</script>
+</body>
+</html>

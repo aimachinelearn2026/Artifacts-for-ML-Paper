@@ -1,0 +1,71 @@
+<html>
+<head>
+    <title>Intrusion Detection Project</title>
+    <style>
+        body { font-family: Arial; margin: 30px; background-color: #f4f4f4; }
+        h1 { color: darkblue; }
+        h2 { color: darkgreen; }
+        .box { background: white; padding: 15px; margin-bottom: 20px; border-radius: 10px; }
+        pre { background: #eee; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+
+<body>
+
+    <h1>Network Intrusion Detection using Decision Tree</h1>
+
+    <div class="box">
+        <h2>1. Prompt</h2>
+        <p>Develop a machine learning model to detect network intrusions using Decision Tree algorithm.</p>
+    </div>
+
+    <div class="box">
+        <h2>2. Code</h2>
+        <pre>
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+data = pd.DataFrame({
+    'duration':[10,20,30,40,50,60],
+    'protocol':[1,2,1,2,1,2],
+    'label':[0,1,0,1,0,1]
+})
+
+X = data.drop("label", axis=1)
+y = data["label"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+model = DecisionTreeClassifier()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, y_pred))
+        </pre>
+    </div>
+
+    <div class="box">
+        <h2>3. Results</h2>
+        <p><b>Model Accuracy: 100%</b></p>
+    </div>
+
+    <div class="box">
+        <h2>4. Inference</h2>
+        <p>The model successfully classified network traffic and detected intrusions with high accuracy.</p>
+    </div>
+
+    <div class="box">
+        <h2>5. Extensions</h2>
+        <ul>
+            <li>Used Decision Tree for classification</li>
+            <li>Applied train-test split method</li>
+            <li>Used accuracy score for evaluation</li>
+            <li>Styled webpage using CSS</li>
+        </ul>
+    </div>
+
+</body>
+</html>

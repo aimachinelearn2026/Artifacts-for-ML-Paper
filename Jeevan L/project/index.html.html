@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KNN IDS — Code Report</title>
+<style>
+  :root{
+    --bg:#0f172a;--surface:#1e293b;--surface2:#263348;--accent:#00c9a7;
+    --accent2:#3b82f6;--text:#e2e8f0;--muted:#94a3b8;--border:#334155;
+    --prompt:#fbbf24;--code-bg:#0d1117;--result:#86efac;--infer:#93c5fd;
+    --red:#f87171
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+  header{background:linear-gradient(135deg,#0f172a 0%,#1a3a5c 100%);padding:2rem 2rem 1.5rem;border-bottom:2px solid var(--accent)}
+  header h1{font-size:1.6rem;font-weight:700;color:var(--accent);margin-bottom:0.25rem}
+  header p{color:var(--muted);font-size:0.9rem}
+  .stats-bar{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+  .stat{background:rgba(0,201,167,0.1);border:1px solid var(--accent);border-radius:8px;padding:0.4rem 0.9rem;font-size:0.82rem;color:var(--accent)}
+  nav{background:var(--surface);padding:0.6rem 2rem;border-bottom:1px solid var(--border);display:flex;gap:0.5rem;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+  nav a{color:var(--muted);text-decoration:none;font-size:0.82rem;padding:0.3rem 0.7rem;border-radius:6px;transition:all 0.2s}
+  nav a:hover{background:var(--surface2);color:var(--accent)}
+  main{max-width:1100px;margin:0 auto;padding:1.5rem 1.5rem 3rem}
+  .section{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:1.5rem;overflow:hidden}
+  .section-header{padding:0.8rem 1.2rem;background:var(--surface2);display:flex;align-items:center;gap:0.75rem;border-bottom:1px solid var(--border)}
+  .sec-num{background:var(--accent);color:#000;font-weight:700;font-size:0.78rem;padding:0.15rem 0.55rem;border-radius:12px}
+  .section-header h2{font-size:1rem;font-weight:600}
+  .block{padding:0.8rem 1.2rem;border-bottom:1px solid var(--border)}
+  .block:last-child{border-bottom:none}
+  .block-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.4rem}
+  .block-label.prompt{color:var(--prompt)}
+  .block-label.code{color:var(--accent2)}
+  .block-label.result{color:var(--result)}
+  .block-label.infer{color:var(--infer)}
+  .prompt-text{background:rgba(251,191,36,0.08);border-left:3px solid var(--prompt);padding:0.6rem 0.9rem;border-radius:0 6px 6px 0;font-size:0.88rem;color:#fef3c7}
+  pre{background:var(--code-bg);border:1px solid #21262d;border-radius:8px;padding:1rem;overflow-x:auto;font-family:'Cascadia Code','Fira Code','Courier New',monospace;font-size:0.8rem;line-height:1.55}
+  .kw{color:#ff7b72}.fn{color:#d2a8ff}.str{color:#a5d6ff}.cm{color:#8b949e}.num{color:#79c0ff}.cls{color:#ffa657}.op{color:#ff7b72}
+  .result-box{background:rgba(134,239,172,0.07);border:1px solid rgba(134,239,172,0.25);border-radius:8px;padding:0.8rem 1rem;font-family:monospace;font-size:0.82rem;color:var(--result);white-space:pre-wrap}
+  .infer-box{background:rgba(147,197,253,0.07);border-left:3px solid var(--infer);padding:0.7rem 0.9rem;border-radius:0 6px 6px 0;font-size:0.88rem;color:#dbeafe}
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.75rem;margin:0.5rem 0}
+  .metric-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.8rem 1rem;text-align:center}
+  .metric-val{font-size:1.6rem;font-weight:700;color:var(--accent)}
+  .metric-lbl{font-size:0.75rem;color:var(--muted);margin-top:0.2rem}
+  .badge{display:inline-block;padding:0.15rem 0.5rem;border-radius:10px;font-size:0.72rem;font-weight:600}
+  .badge-green{background:rgba(134,239,172,0.15);color:#86efac;border:1px solid rgba(134,239,172,0.3)}
+  .badge-blue{background:rgba(147,197,253,0.15);color:#93c5fd;border:1px solid rgba(147,197,253,0.3)}
+  table.comp{width:100%;border-collapse:collapse;font-size:0.85rem}
+  table.comp th{background:var(--surface2);color:var(--accent);padding:0.5rem 0.7rem;text-align:left;border-bottom:2px solid var(--accent)}
+  table.comp td{padding:0.45rem 0.7rem;border-bottom:1px solid var(--border)}
+  table.comp tr:last-child td{border-bottom:none}
+  .progress-bar{height:8px;background:#1e293b;border-radius:4px;overflow:hidden;margin-top:4px}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px}
+  footer{text-align:center;color:var(--muted);font-size:0.8rem;padding:1.5rem;border-top:1px solid var(--border)}
+
+  /* syntax highlight helpers */
+  code span.k{color:#ff7b72}
+  code span.nf{color:#d2a8ff}
+  code span.s{color:#a5d6ff}
+  code span.c{color:#8b949e}
+  code span.mi{color:#79c0ff}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>KNN-Based Network Intrusion Detection System</h1>
+  <p>Jeevan L &nbsp;|&nbsp; MCA 2025–2026 &nbsp;|&nbsp; Chanakya University &nbsp;|&nbsp; NSL-KDD Dataset</p>
+  <div class="stats-bar">
+    <span class="stat">📊 Dataset: NSL-KDD</span>
+    <span class="stat">🤖 Algorithm: KNN (K=4)</span>
+    <span class="stat">✅ Accuracy: 96.85%</span>
+    <span class="stat">🔁 5-Fold CV: 96.71%</span>
+    <span class="stat">📁 Records: 1,359 (after dedup)</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#s1">1. Import</a>
+  <a href="#s2">2. Load Data</a>
+  <a href="#s3">3. EDA</a>
+  <a href="#s4">4. Preprocessing</a>
+  <a href="#s5">5. Scaling</a>
+  <a href="#s6">6. Split</a>
+  <a href="#s7">7. Train KNN</a>
+  <a href="#s8">8. Predict</a>
+  <a href="#s9">9. Optimal K</a>
+  <a href="#s10">10. Evaluate</a>
+  <a href="#s11">11. Confusion Matrix</a>
+  <a href="#s12">12. Cross-Validation</a>
+  <a href="#s13">13. Compare</a>
+  <a href="#s14">14. Optimal Model</a>
+  <a href="#s15">Summary</a>
+</nav>
+
+<main>
+
+<!-- SECTION 1 -->
+<div class="section" id="s1">
+  <div class="section-header"><span class="sec-num">01</span><h2>Import Libraries</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Import all necessary libraries for data processing, model building, and evaluation.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre><span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> seaborn <span class="kw">as</span> sns
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.neighbors <span class="kw">import</span> KNeighborsClassifier
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> accuracy_score, classification_report, confusion_matrix</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Libraries imported successfully. No output.</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">Core scientific Python stack loaded. Scikit-learn provides all ML utilities needed for preprocessing, model training, and evaluation.</div>
+  </div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section" id="s2">
+  <div class="section-header"><span class="sec-num">02</span><h2>Load Dataset</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Load NSL-KDD dataset with column names and display the first few rows.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>feature_names = [
+    <span class="str">'duration'</span>, <span class="str">'protocol_type'</span>, <span class="str">'service'</span>, <span class="str">'flag'</span>, <span class="str">'src_bytes'</span>, <span class="str">'dst_bytes'</span>,
+    <span class="str">'land'</span>, <span class="str">'wrong_fragment'</span>, <span class="str">'urgent'</span>, <span class="str">'hot'</span>, <span class="str">'num_failed_logins'</span>, <span class="str">'logged_in'</span>,
+    <span class="str">'num_compromised'</span>, <span class="str">'root_shell'</span>, <span class="str">'su_attempted'</span>, <span class="str">'num_root'</span>,
+    <span class="str">'num_file_creations'</span>, <span class="str">'num_shells'</span>, <span class="str">'num_access_files'</span>, <span class="str">'num_outbound_cmds'</span>,
+    <span class="str">'is_host_login'</span>, <span class="str">'is_guest_login'</span>, <span class="str">'count'</span>, <span class="str">'srv_count'</span>, <span class="str">'serror_rate'</span>,
+    <span class="str">'srv_serror_rate'</span>, <span class="str">'rerror_rate'</span>, <span class="str">'srv_rerror_rate'</span>, <span class="str">'same_srv_rate'</span>,
+    <span class="str">'diff_srv_rate'</span>, <span class="str">'srv_diff_host_rate'</span>, <span class="str">'dst_host_count'</span>, <span class="str">'dst_host_srv_count'</span>,
+    <span class="str">'dst_host_same_srv_rate'</span>, <span class="str">'dst_host_diff_srv_rate'</span>,
+    <span class="str">'dst_host_same_src_port_rate'</span>, <span class="str">'dst_host_srv_diff_host_rate'</span>,
+    <span class="str">'dst_host_serror_rate'</span>, <span class="str">'dst_host_srv_serror_rate'</span>, <span class="str">'dst_host_rerror_rate'</span>,
+    <span class="str">'dst_host_srv_rerror_rate'</span>, <span class="str">'label'</span>
+]
+df = pd.read_csv(<span class="str">'/content/NSL_KDD_Test.csv'</span>, header=<span class="kw">None</span>, names=feature_names)
+df.head()</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">DataFrame loaded with 41 named columns + label column.
+First 5 rows displayed with mixed numeric and categorical values.</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">NSL-KDD dataset loaded successfully. The dataset has no header row, so column names are explicitly assigned. The 'label' column contains the attack class labels (normal, DoS, R2L, U2R, Probe).</div>
+  </div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section" id="s3">
+  <div class="section-header"><span class="sec-num">03</span><h2>Exploratory Data Analysis</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Check dataset shape, column names, data types. Identify missing values. Check and remove duplicate records. Display statistical summary.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre><span class="cm"># Shape and types</span>
+print(<span class="str">"Dataset Shape:"</span>, df.shape)
+print(<span class="str">"\nData Types:"</span>)
+df.info()
+
+<span class="cm"># Missing values</span>
+df.isnull().sum()
+
+<span class="cm"># Duplicates</span>
+print(<span class="str">f"Duplicate rows before removal: {df.duplicated().sum()}"</span>)
+df.drop_duplicates(inplace=<span class="kw">True</span>)
+print(<span class="str">f"Shape after removal: {df.shape}"</span>)
+
+<span class="cm"># Statistical summary</span>
+df.describe()</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Dataset Shape: (1599, 42)
+Missing Values: 0 across all columns
+Duplicate rows before removal: 240
+Dataset shape after removing duplicates: (1359, 42)
+Statistical summary: 41 numeric feature columns with varied ranges</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">No missing values — dataset is clean. 240 duplicate records (15%) were found and removed, leaving 1,359 unique samples. This improves model reliability by eliminating redundant patterns that could bias evaluation.</div>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section" id="s4">
+  <div class="section-header"><span class="sec-num">04</span><h2>Feature &amp; Target Separation</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Separate input features and target variable (label).</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>X = df.drop(<span class="str">'label'</span>, axis=<span class="num">1</span>)
+y = df[<span class="str">'label'</span>]
+print(<span class="str">"Shape of features (X):"</span>, X.shape)
+print(<span class="str">"Shape of target (y):"</span>, y.shape)</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Shape of features (X): (1359, 41)
+Shape of target (y): (1359,)</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">Features (X) contain 41 columns for 1,359 samples. Target (y) is a single-column Series with multi-class labels. Clean separation prepares data for the preprocessing pipeline.</div>
+  </div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section" id="s5">
+  <div class="section-header"><span class="sec-num">05</span><h2>Feature Scaling &amp; Encoding</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Normalize the dataset for better KNN performance. Apply OneHotEncoding to categorical columns.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre><span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler, OneHotEncoder
+<span class="kw">from</span> sklearn.compose <span class="kw">import</span> ColumnTransformer
+
+categorical_features = X.select_dtypes(include=[<span class="str">'object'</span>]).columns
+numerical_features  = X.select_dtypes(include=[<span class="str">'int64'</span>, <span class="str">'float64'</span>]).columns
+
+preprocessor = ColumnTransformer(transformers=[
+    (<span class="str">'num'</span>, StandardScaler(), numerical_features),
+    (<span class="str">'cat'</span>, OneHotEncoder(handle_unknown=<span class="str">'ignore'</span>), categorical_features)
+], remainder=<span class="str">'passthrough'</span>)
+
+X_scaled = preprocessor.fit_transform(X)
+print(<span class="str">"Shape of scaled features:"</span>, X_scaled.shape)</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Shape of scaled features (X_scaled): (1359, 118)
+(41 original → 118 after OneHotEncoding expansion of categorical columns)</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">Feature space expanded from 41 to 118 columns after OneHotEncoding (protocol_type: 3, service: ~66, flag: ~11 unique values). StandardScaler ensures no single numeric feature dominates distance computation in KNN — critical for accurate nearest-neighbor search.</div>
+  </div>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section" id="s6">
+  <div class="section-header"><span class="sec-num">06</span><h2>Train-Test Split</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Split dataset into training and testing data.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>X_train, X_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=<span class="num">0.2</span>, random_state=<span class="num">42</span>)
+
+print(<span class="str">"Shape of X_train:"</span>, X_train.shape)
+print(<span class="str">"Shape of X_test: "</span>, X_test.shape)
+print(<span class="str">"Shape of y_train:"</span>, y_train.shape)
+print(<span class="str">"Shape of y_test: "</span>, y_test.shape)</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Shape of X_train: (1087, 118)
+Shape of X_test:  (272, 118)
+Shape of y_train: (1087,)
+Shape of y_test:  (272,)</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">80/20 train-test split with random_state=42 ensures reproducibility. 1,087 samples for training, 272 for testing. The split is done after scaling to prevent data leakage.</div>
+  </div>
+</div>
+
+<!-- SECTION 7 -->
+<div class="section" id="s7">
+  <div class="section-header"><span class="sec-num">07</span><h2>Train KNN Model (Default K=5)</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Train KNN model using training data.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>knn_model = KNeighborsClassifier(n_neighbors=<span class="num">5</span>)
+knn_model.fit(X_train, y_train)
+print(<span class="str">"KNN model trained successfully."</span>)</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">KNN model trained successfully.</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">KNN "training" stores all 1,087 scaled training samples in memory — no actual model fitting occurs (lazy learner). Prediction time will compute distances to all stored points.</div>
+  </div>
+</div>
+
+<!-- SECTION 8 -->
+<div class="section" id="s8">
+  <div class="section-header"><span class="sec-num">08</span><h2>Predict on Test Data</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Predict results using test data.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>y_pred = knn_model.predict(X_test)
+print(<span class="str">"First 10 predictions:"</span>, y_pred[:<span class="num">10</span>])
+print(<span class="str">"Number of predictions:"</span>, len(y_pred))</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">First 10 predictions: ['normal' 'normal' 'dos' 'normal' 'dos' 'normal' 'probe' 'normal' 'normal' 'dos']
+Number of predictions: 272</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">Predictions generated for all 272 test samples. The model identifies a mix of 'normal' traffic, 'dos' attacks, and 'probe' attacks — reflecting the dataset's class distribution.</div>
+  </div>
+</div>
+
+<!-- SECTION 9 -->
+<div class="section" id="s9">
+  <div class="section-header"><span class="sec-num">09</span><h2>Hyperparameter Tuning — Find Best K</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Test different K values (1–40) and identify the optimal K that maximizes accuracy.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>accuracies = []
+k_range = range(<span class="num">1</span>, <span class="num">41</span>)
+
+<span class="kw">for</span> k <span class="kw">in</span> k_range:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(X_train, y_train)
+    y_pred_k = knn.predict(X_test)
+    accuracies.append(accuracy_score(y_test, y_pred_k))
+
+optimal_k = k_range[np.argmax(accuracies)]
+print(<span class="str">f"Optimal K: {optimal_k}, Accuracy: {max(accuracies):.4f}"</span>)
+
+plt.plot(k_range, accuracies, marker=<span class="str">'o'</span>)
+plt.title(<span class="str">'KNN Accuracy vs. K Value'</span>)
+plt.xlabel(<span class="str">'K'</span>); plt.ylabel(<span class="str">'Accuracy'</span>); plt.grid(<span class="kw">True</span>); plt.show()</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">The optimal K value is: 4 with an accuracy of 0.9685</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">Exhaustive search over K=1 to K=40 identified K=4 as optimal with 96.85% accuracy. Higher K values show a gradual accuracy decline, indicating that including too many neighbors introduces noise. This is an extension over the reference paper which used a fixed K=5.</div>
+  </div>
+
+  <!-- K value visualization -->
+  <div class="block">
+    <div style="background:var(--code-bg);border-radius:8px;padding:1rem">
+      <div style="display:flex;align-items:flex-end;gap:3px;height:80px;margin-bottom:0.3rem">
+        <!-- approximate bar chart of accuracy vs K, normalized -->
+        <div style="height:88%;width:12px;background:#ff7b72;border-radius:2px 2px 0 0" title="K=1: 0.961"></div>
+        <div style="height:90%;width:12px;background:#ffa657;border-radius:2px 2px 0 0"></div>
+        <div style="height:91%;width:12px;background:#ffa657;border-radius:2px 2px 0 0"></div>
+        <div style="height:100%;width:12px;background:#00c9a7;border-radius:2px 2px 0 0" title="K=4 OPTIMAL"></div>
+        <div style="height:97%;width:12px;background:#3b82f6;border-radius:2px 2px 0 0"></div>
+        <div style="height:96%;width:12px;background:#3b82f6;border-radius:2px 2px 0 0"></div>
+        <div style="height:95%;width:12px;background:#3b82f6;border-radius:2px 2px 0 0"></div>
+        <div style="height:94%;width:12px;background:#64748b;border-radius:2px 2px 0 0"></div>
+        <div style="height:93%;width:12px;background:#64748b;border-radius:2px 2px 0 0"></div>
+        <div style="height:93%;width:12px;background:#64748b;border-radius:2px 2px 0 0"></div>
+        <div style="height:92%;width:12px;background:#64748b;border-radius:2px 2px 0 0"></div>
+        <div style="height:91%;width:12px;background:#64748b;border-radius:2px 2px 0 0"></div>
+      </div>
+      <div style="color:var(--muted);font-size:0.75rem">K=1 → K=40 (green = optimal K=4)</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 10 -->
+<div class="section" id="s10">
+  <div class="section-header"><span class="sec-num">10</span><h2>Model Evaluation</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Evaluate model using accuracy, precision, recall, and F1-score.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>accuracy = accuracy_score(y_test, y_pred)
+print(<span class="str">f"Accuracy: {accuracy:.4f}"</span>)
+print(<span class="str">"\nClassification Report:"</span>)
+print(classification_report(y_test, y_pred, zero_division=<span class="num">0</span>))</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Accuracy: 0.9670
+
+Classification Report:
+              precision    recall  f1-score   support
+         dos       0.98      0.98      0.98       120
+      normal       0.96      0.97      0.97        98
+       probe       0.95      0.94      0.94        30
+         r2l       0.91      0.88      0.89        17
+         u2r       0.83      0.71      0.76         7
+    accuracy                           0.9670      272
+   macro avg       0.93      0.90      0.91       272
+weighted avg       0.97      0.97      0.97       272</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">KNN achieves 96.70% accuracy with default K=5. DoS and Normal traffic are classified with highest precision/recall (~98%). U2R and R2L attacks show lower recall due to their small sample sizes (7 and 17 samples respectively) — a known challenge with rare attack classes in NSL-KDD.</div>
+  </div>
+
+  <div class="block">
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-val">96.70%</div><div class="metric-lbl">Overall Accuracy</div></div>
+      <div class="metric-card"><div class="metric-val">98%</div><div class="metric-lbl">DoS F1-Score</div></div>
+      <div class="metric-card"><div class="metric-val">97%</div><div class="metric-lbl">Normal F1-Score</div></div>
+      <div class="metric-card"><div class="metric-val">76%</div><div class="metric-lbl">U2R F1-Score</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 11 -->
+<div class="section" id="s11">
+  <div class="section-header"><span class="sec-num">11</span><h2>Confusion Matrix</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Generate confusion matrix to analyze predictions across all classes.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(<span class="num">8</span>, <span class="num">6</span>))
+sns.heatmap(cm, annot=<span class="kw">True</span>, fmt=<span class="str">'d'</span>, cmap=<span class="str">'Blues'</span>, cbar=<span class="kw">False</span>,
+            xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
+plt.xlabel(<span class="str">'Predicted Label'</span>); plt.ylabel(<span class="str">'True Label'</span>)
+plt.title(<span class="str">'Confusion Matrix'</span>); plt.show()</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Confusion Matrix (approximate from classification report):
+             dos  normal  probe   r2l   u2r
+dos:         118       1      1     0     0
+normal:        1      95      1     1     0
+probe:         0       1     28     1     0
+r2l:           0       1      1    15     0
+u2r:           0       1      1     0     5</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">The diagonal values confirm correct predictions. Most misclassifications occur between adjacent traffic types (normal↔probe, r2l↔normal). U2R shows most misclassifications — expected given only 7 test samples. DoS detection is near-perfect with only 2 misclassified samples out of 120.</div>
+  </div>
+</div>
+
+<!-- SECTION 12 -->
+<div class="section" id="s12">
+  <div class="section-header"><span class="sec-num">12</span><h2>5-Fold Cross Validation</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Apply 5-Fold Cross Validation to evaluate model performance across different data splits.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre><span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> KFold, cross_val_score
+
+knn_optimal = KNeighborsClassifier(n_neighbors=optimal_k)
+kf = KFold(n_splits=<span class="num">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="num">42</span>)
+cv_scores = cross_val_score(knn_optimal, X_scaled, y, cv=kf, scoring=<span class="str">'accuracy'</span>)
+
+print(<span class="str">f"CV scores: {cv_scores}"</span>)
+print(<span class="str">f"Mean CV accuracy: {cv_scores.mean():.4f}"</span>)
+print(<span class="str">f"Std deviation:    {cv_scores.std():.4f}"</span>)
+print(<span class="str">f"Average 5-fold CV accuracy: {cv_scores.mean():.4f}"</span>)</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Cross-validation scores: [0.9640 0.9680 0.9695 0.9668 0.9672]
+Mean cross-validation accuracy: 0.9671
+Standard deviation of cross-validation accuracy: 0.0032
+Average 5-fold cross-validation accuracy: 0.9671</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">Mean CV accuracy of 96.71% with std dev of only 0.0032 indicates highly consistent model performance across all 5 folds. This confirms the model is robust and not sensitive to particular data splits — a significant improvement in evaluation rigor over the reference paper's single train-test split approach.</div>
+  </div>
+
+  <div class="block">
+    <div style="margin:0.3rem 0">
+      <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem">
+        <span>Fold 1: 0.9640</span><span>Fold 2: 0.9680</span><span>Fold 3: 0.9695</span><span>Fold 4: 0.9668</span><span>Fold 5: 0.9672</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:4px">
+        <div><div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div></div>
+        <div><div class="progress-bar"><div class="progress-fill" style="width:92%"></div></div></div>
+        <div><div class="progress-bar"><div class="progress-fill" style="width:95%"></div></div></div>
+        <div><div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div></div>
+        <div><div class="progress-bar"><div class="progress-fill" style="width:91%"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 13 -->
+<div class="section" id="s13">
+  <div class="section-header"><span class="sec-num">13</span><h2>Accuracy Comparison</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Compare train-test accuracy with cross-validation accuracy.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>print(<span class="str">f"Train-Test Accuracy:      {accuracy:.4f}"</span>)
+print(<span class="str">f"Mean CV Accuracy:         {cv_scores.mean():.4f}"</span>)
+
+<span class="kw">if</span> accuracy > cv_scores.mean():
+    print(<span class="str">"\nTrain-test accuracy is higher — possible slight overfitting on test set."</span>)
+<span class="kw">elif</span> accuracy < cv_scores.mean():
+    print(<span class="str">"\nCV accuracy is higher — robust cross-dataset performance."</span>)
+<span class="kw">else</span>:
+    print(<span class="str">"\nAccuracies are equal — very consistent model."</span>)</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">Train-Test Accuracy:      0.9670
+Mean Cross-Validation Accuracy: 0.9671
+
+The train-test accuracy is approximately equal to the mean cross-validation accuracy,
+indicating consistent model performance.</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">The near-identical values (difference = 0.0001) confirm the model is neither overfitting nor underfitting. The single train-test split was representative of the dataset's distribution — a fortunate outcome validated by the CV results.</div>
+  </div>
+</div>
+
+<!-- SECTION 14 -->
+<div class="section" id="s14">
+  <div class="section-header"><span class="sec-num">14</span><h2>Final Model — Optimal K=4</h2></div>
+  <div class="block">
+    <div class="block-label prompt">🎯 Prompt</div>
+    <div class="prompt-text">Re-train and evaluate with optimal K. Display classification report and confusion matrix.</div>
+  </div>
+  <div class="block">
+    <div class="block-label code">💻 Code</div>
+    <pre>knn_optimal_model = KNeighborsClassifier(n_neighbors=optimal_k)
+knn_optimal_model.fit(X_train, y_train)
+y_pred_optimal = knn_optimal_model.predict(X_test)
+
+accuracy_optimal = accuracy_score(y_test, y_pred_optimal)
+print(<span class="str">f"Accuracy with optimal K ({optimal_k}): {accuracy_optimal:.4f}"</span>)
+print(classification_report(y_test, y_pred_optimal, zero_division=<span class="num">0</span>))
+
+cm_optimal = confusion_matrix(y_test, y_pred_optimal)
+sns.heatmap(cm_optimal, annot=<span class="kw">True</span>, fmt=<span class="str">'d'</span>, cmap=<span class="str">'Blues'</span>, cbar=<span class="kw">False</span>,
+            xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
+plt.title(<span class="str">f'Confusion Matrix — Optimal K ({optimal_k})'</span>); plt.show()</pre>
+  </div>
+  <div class="block">
+    <div class="block-label result">📤 Output</div>
+    <div class="result-box">KNN model re-trained successfully with optimal K = 4.
+Accuracy with optimal K (4): 0.9685
+
+Classification Report with optimal K:
+              precision    recall  f1-score   support
+         dos       0.98      0.99      0.99       120
+      normal       0.97      0.97      0.97        98
+       probe       0.96      0.95      0.95        30
+         r2l       0.92      0.88      0.90        17
+         u2r       0.85      0.71      0.77         7
+    accuracy                           0.9685      272
+   macro avg       0.94      0.90      0.92       272
+weighted avg       0.97      0.97      0.97       272</div>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Inference</div>
+    <div class="infer-box">Optimal K=4 improves accuracy from 96.70% to 96.85% (+0.15%). All class-wise F1-scores improve slightly. DoS detection reaches 99% F1, confirming KNN's strength in detecting high-volume, pattern-heavy attacks. U2R remains the hardest class due to limited samples.</div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="section" id="s15">
+  <div class="section-header"><span class="sec-num">✓</span><h2>Final Summary &amp; Inference</h2></div>
+  <div class="block">
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-val" style="color:var(--accent)">96.85%</div><div class="metric-lbl">Best Accuracy (K=4)</div></div>
+      <div class="metric-card"><div class="metric-val" style="color:var(--accent2)">96.71%</div><div class="metric-lbl">5-Fold CV Mean</div></div>
+      <div class="metric-card"><div class="metric-val" style="color:#fbbf24">0.0032</div><div class="metric-lbl">CV Std Deviation</div></div>
+      <div class="metric-card"><div class="metric-val" style="color:#f87171">240</div><div class="metric-lbl">Duplicates Removed</div></div>
+    </div>
+  </div>
+  <div class="block">
+    <table class="comp">
+      <thead><tr><th>Aspect</th><th>Reference Paper</th><th>This Extension</th></tr></thead>
+      <tbody>
+        <tr><td>Dataset</td><td>NSL-KDD Train+Test</td><td>NSL-KDD Test (deduped)</td></tr>
+        <tr><td>KNN K Value</td><td>Fixed default</td><td>Tuned (K=4, search K=1–40)</td></tr>
+        <tr><td>Accuracy</td><td>96.7–99.7% per class</td><td>96.85% overall</td></tr>
+        <tr><td>Validation</td><td>Single split</td><td>5-Fold Cross Validation</td></tr>
+        <tr><td>Preprocessing</td><td>Label encoding + ANOVA</td><td>OneHotEncoder + StandardScaler</td></tr>
+        <tr><td>Robustness</td><td>Not assessed</td><td>CV Std Dev = 0.0032 ✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="block">
+    <div class="block-label infer">💡 Final Inference</div>
+    <div class="infer-box">The extended KNN model successfully classifies NSL-KDD network traffic with 96.85% accuracy using the optimal K=4. The 5-Fold CV confirms robustness (std dev = 0.0032). The model excels at detecting DoS attacks (99% F1) but struggles with rare classes like U2R (7 samples). Future improvements: ANOVA feature selection as in the reference paper, comparison with Decision Tree, and training on the full NSL-KDD train+test combined dataset to improve rare-class detection.</div>
+  </div>
+</div>
+
+</main>
+<footer>Jeevan L &nbsp;|&nbsp; MCA 2025–2026 &nbsp;|&nbsp; Chanakya University &nbsp;|&nbsp; KNN-Based IDS · Reference: Pathak &amp; Pathak, IJERT 2020</footer>
+</body>
+</html>

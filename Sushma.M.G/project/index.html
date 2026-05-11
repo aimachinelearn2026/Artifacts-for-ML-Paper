@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNN, LDA and Simple Perceptron</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        ul {
+            margin-left: 20px;
+        }
+        pre {
+            background: #eee;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="section">
+        <h1>Education: Teaching the Basics of KNN, LDA and Simple Perceptron Algorithms</h1>
+        <h3>SUSHMA MG - 25PG00205</h3>
+    </div>
+
+    <div class="section">
+        <h2>Classification Algorithms Theory - KNN</h2>
+        <ul>
+            <li>KNN is a supervised classification algorithm</li>
+            <li>Proposed by Evelyn Fix & Joseph Hodges (1951)</li>
+            <li>Further developed by Thomas Cover (1967)</li>
+            <li>Stores all training data (no explicit training phase)</li>
+            <li>Classifies data based on similarity (distance)</li>
+            <li>Uses k nearest neighbors to decide the class</li>
+            <li>Common distance metric: Euclidean distance</li>
+            <li>Works on majority voting principle</li>
+            <li>Simple and easy to implement</li>
+            <li>Used in classification and regression problems</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Algorithm 1: KNN Pseudo-code</h2>
+        <pre>
+Input:
+x, l, s
+x : training data
+l : label
+s : sample to classify
+
+For each training data point:
+    Compute distance d(xi, s)
+
+Select desired number k of nearest neighbors
+Sort distances in increasing order
+Count occurrences of labels among top k neighbors
+
+Output:
+Assign to s the most frequent label
+        </pre>
+    </div>
+
+    <div class="section">
+        <h2>Linear Discriminant Analysis (LDA)</h2>
+        <ul>
+            <li>LDA is a supervised learning algorithm</li>
+            <li>Introduced by Ronald Fisher (1936)</li>
+            <li>Used for dimensionality reduction and classification</li>
+            <li>Projects data into lower-dimensional space</li>
+            <li>Maximizes between-class variance</li>
+            <li>Minimizes within-class variance</li>
+            <li>Improves class separation</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>LDA Feature Space Transformation</h2>
+        <ul>
+            <li>Analyzes entire feature space</li>
+            <li>Creates new axes in lower-dimensional space</li>
+            <li>Reduces 2D data (X₁, X₂) to 1D</li>
+            <li>Projects data onto optimal axis</li>
+            <li>Maximizes between-class variance</li>
+            <li>Minimizes within-class variance</li>
+            <li>Achieves better class separability</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Simple Perceptron</h2>
+        <ul>
+            <li>Introduced by Rosenblatt</li>
+            <li>Basic unit of Artificial Neural Networks (ANN)</li>
+            <li>Inspired by biological neuron</li>
+            <li>Used as supervised binary classifier</li>
+            <li>Classifies data into two classes (0 or 1)</li>
+            <li>Input</li>
+            <li>Weight and bias</li>
+            <li>Net sum</li>
+            <li>Activation function</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Method</h2>
+        <p>
+            To estimate the performance of KNN, LDA, and Perceptron, repeated k-fold cross-validation was used,
+            with k = 5 and 100 repetitions for each algorithm.
+        </p>
+        <ul>
+            <li>Cleveland dataset: 23 nearest neighbors</li>
+            <li>Banknote dataset: 4 nearest neighbors</li>
+            <li>Wisconsin dataset: 5 nearest neighbors</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Results</h2>
+        <p>Performance comparison of KNN, LDA, and Perceptron based on selected datasets.</p>
+    </div>
+
+    <div class="section">
+           </div>
+
+</body>
+</html>

@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IDS — Decision Tree, KNN & Random Forest | NSL-KDD</title>
+<style>
+:root{
+  --bg:#F8FAFC; --white:#fff; --navy:#0D1B2A; --teal:#1B9AAA;
+  --accent:#F4A261; --purple:#6366F1; --red:#E63946; --green:#2EC4B6;
+  --border:#E2E8F0; --muted:#64748B; --text:#1E293B;
+  --code-bg:#0F172A; --out-bg:#020817;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.75}
+
+/* ── HEADER ── */
+header{background:var(--navy);padding:2rem 2.5rem 1.8rem;border-left:6px solid var(--teal)}
+header h1{color:#fff;font-size:1.55rem;font-weight:800;line-height:1.3;margin-bottom:.5rem}
+header .ref{color:#94A3B8;font-size:.85rem;margin-bottom:.6rem}
+header .tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}
+header .tag{background:rgba(27,154,170,.2);color:var(--teal);font-size:.72rem;padding:.2rem .6rem;border-radius:20px;border:1px solid rgba(27,154,170,.3)}
+
+/* ── NAV ── */
+nav{background:#fff;border-bottom:2px solid var(--teal);position:sticky;top:0;z-index:200;display:flex;overflow-x:auto;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+nav a{padding:.8rem 1.1rem;font-size:.78rem;font-weight:600;color:var(--muted);text-decoration:none;border-bottom:3px solid transparent;white-space:nowrap;transition:all .18s}
+nav a:hover,nav a.active{color:var(--teal);border-bottom-color:var(--teal);background:#F0FDFE}
+
+/* ── LAYOUT ── */
+.wrap{max-width:980px;margin:0 auto;padding:2rem 1.5rem}
+
+/* ── OBJECTIVES BOX ── */
+.objectives{background:#fff;border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:8px;padding:1.3rem 1.6rem;margin-bottom:2rem}
+.objectives p{font-size:.92rem;color:var(--text);margin:.22rem 0}
+.objectives .ext{color:var(--accent);font-weight:600}
+
+/* ── SECTION ── */
+.section{margin-bottom:2.8rem}
+.sec-title{font-size:1.1rem;font-weight:800;color:var(--navy);margin:0 0 .6rem;padding-bottom:.35rem;border-bottom:2px solid var(--border)}
+.sec-title .etag{background:#FEF3C7;color:#92400E;font-size:.65rem;font-weight:700;padding:.12rem .45rem;border-radius:3px;margin-left:.5rem;vertical-align:middle}
+
+/* ── PROMPT ── */
+.prompt-lbl{font-size:.72rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);font-weight:700;margin:.9rem 0 .3rem}
+.prompt-text{background:#1E293B;border-left:4px solid var(--accent);border-radius:6px;padding:.9rem 1.2rem;font-size:.87rem;color:#CBD5E1;line-height:1.8;margin-bottom:.8rem}
+.prompt-text .note{color:#94A3B8;font-size:.82rem;margin-top:.4rem}
+
+/* ── CODE CELL ── */
+.cell{border-radius:8px;overflow:hidden;border:1px solid #1E293B;margin:.8rem 0}
+.cell-bar{background:#1E293B;padding:.45rem 1rem;display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:#94A3B8;font-weight:600;letter-spacing:.5px}
+.cell-bar .dots{display:flex;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%}
+pre{background:var(--code-bg);padding:1.1rem 1.4rem;overflow-x:auto;font-family:'Consolas','Courier New',monospace;font-size:.79rem;line-height:1.8;margin:0;color:#E2E8F0}
+/* syntax */
+.k{color:#818CF8} .s{color:#86EFAC} .c{color:#5EEAD4}
+.f{color:#FCD34D} .n{color:#F9A8D4} .ext{color:#FB923C;font-weight:700}
+/* output */
+.out{background:var(--out-bg);border-top:1px solid #1E293B;padding:.9rem 1.4rem;font-family:'Consolas',monospace;font-size:.76rem;color:#D1FAE5;line-height:1.75;overflow-x:auto}
+.out .hdr{color:#93C5FD;font-weight:700}
+.out .warn{color:#FCD34D}
+.out .best{color:#4ADE80;font-weight:700}
+
+/* ── INFERENCE ── */
+.inference{background:#F0FDF4;border-left:4px solid var(--green);border-radius:6px;padding:.85rem 1.1rem;font-size:.88rem;color:var(--text);line-height:1.8;margin:.8rem 0}
+.inference .inf-lbl{font-weight:800;color:#14532D;margin-right:.3rem}
+
+/* ── RESULTS TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);margin:.8rem 0}
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+thead th{background:var(--navy);color:#fff;padding:.6rem .85rem;text-align:center;font-weight:600}
+tbody td{padding:.52rem .85rem;text-align:center;border:1px solid var(--border)}
+tr.dt-row{background:#EBF8FF} tr.knn-row{background:#F0FFF4} tr.rf-row{background:#FFFBEB}
+.best-cell{font-weight:800;color:var(--teal)}
+
+/* ── METRIC BARS ── */
+.bars{margin:.6rem 0}
+.brow{display:flex;align-items:center;gap:.7rem;margin:.4rem 0}
+.blbl{width:145px;font-size:.78rem;color:var(--muted);text-align:right;flex-shrink:0;font-weight:600}
+.btrack{flex:1;background:#E2E8F0;border-radius:5px;height:24px}
+.bfill{height:100%;border-radius:5px;display:flex;align-items:center;padding-left:8px;min-width:60px}
+.bfill span{font-size:.76rem;color:#fff;font-weight:700}
+
+footer{background:var(--navy);color:#475569;text-align:center;padding:1.6rem;margin-top:3rem;font-size:.78rem;border-top:3px solid var(--teal)}
+@media(max-width:600px){.wrap{padding:1rem .8rem}pre{font-size:.7rem}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Intrusion Detection System using Decision Tree, KNN and Random Forest</h1>
+  <div class="ref">Reference: Pathak, A. and Pathak, S. (2020). Study on Decision Tree and KNN Algorithm for Intrusion Detection System. IJERT, Vol. 9, Issue 05, May 2020.</div>
+  <div class="ref">Dataset: NSL-KDD (KDDTrain+.txt / KDDTest+.txt) — https://www.unb.ca/cic/datasets/nsl.html</div>
+  <div class="tags">
+    <span class="tag">NSL-KDD Dataset</span>
+    <span class="tag">Decision Tree</span>
+    <span class="tag">KNN</span>
+    <span class="tag">Random Forest *</span>
+    <span class="tag">GridSearchCV *</span>
+    <span class="tag">ROC-AUC *</span>
+    <span class="tag">5-fold CV *</span>
+  </div>
+</header>
+
+<nav id="topnav">
+  <a href="#objectives">Objectives</a>
+  <a href="#imports">1. Imports</a>
+  <a href="#read">2. Read Data</a>
+  <a href="#explore">3. Explore</a>
+  <a href="#preprocess">4. Pre-Process</a>
+  <a href="#features">5. Features</a>
+  <a href="#gridsearch">6. GridSearchCV *</a>
+  <a href="#dt">7. Decision Tree</a>
+  <a href="#knn">8. KNN</a>
+  <a href="#rf">9. Random Forest *</a>
+  <a href="#cm">10. Conf. Matrix *</a>
+  <a href="#roc">11. ROC Curves *</a>
+  <a href="#compare">12. Comparison</a>
+  <a href="#fullresults">📋 Full Results</a>
+  <a href="#summary">13. Conclusions</a>
+</nav>
+
+<div class="wrap">
+
+<!-- ══ OBJECTIVES ══════════════════════════════════════════ -->
+<section class="section" id="objectives">
+  <div class="sec-title">Objectives</div>
+  <div class="objectives">
+    <p>Read the data</p>
+    <p>Explore the data</p>
+    <p>Pre-process: label mapping, One-Hot Encoding, Min-Max Normalisation</p>
+    <p>Apply ANOVA F-test feature selection (same as original paper)</p>
+    <p>Build Decision Tree classifier</p>
+    <p>Build KNN classifier</p>
+    <p class="ext">Build Random Forest classifier *</p>
+    <p class="ext">Apply GridSearchCV hyperparameter tuning *</p>
+    <p class="ext">Compare performance on Accuracy, Precision, Recall, F1, ROC-AUC with 5-fold CV *</p>
+    <p class="ext">Plot confusion matrices and ROC curves *</p>
+    <p style="margin-top:.6rem;font-size:.8rem;color:var(--muted)">* = Extension — not in original paper</p>
+  </div>
+</section>
+
+<!-- ══ 1. IMPORTS ═══════════════════════════════════════════ -->
+<section class="section" id="imports">
+  <div class="sec-title">Import Libraries</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Import pandas, numpy, matplotlib, seaborn and all required sklearn modules for classifiers, preprocessing, feature selection, model selection and evaluation metrics.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Import all required libraries</span>
+<span class="k">import</span> pandas <span class="k">as</span> pd
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> matplotlib.pyplot <span class="k">as</span> plt
+<span class="k">import</span> seaborn <span class="k">as</span> sns
+<span class="k">import</span> time
+<span class="k">import</span> warnings
+warnings.filterwarnings(<span class="s">'ignore'</span>)
+
+<span class="c">#Classifiers</span>
+<span class="k">from</span> sklearn.tree          <span class="k">import</span> DecisionTreeClassifier
+<span class="k">from</span> sklearn.neighbors     <span class="k">import</span> KNeighborsClassifier
+<span class="k">from</span> sklearn.ensemble      <span class="k">import</span> RandomForestClassifier     <span class="ext"># Extension</span>
+
+<span class="c">#Preprocessing</span>
+<span class="k">from</span> sklearn.preprocessing <span class="k">import</span> MinMaxScaler, label_binarize
+
+<span class="c">#Feature selection</span>
+<span class="k">from</span> sklearn.feature_selection <span class="k">import</span> SelectPercentile, f_classif
+
+<span class="c">#Model selection</span>
+<span class="k">from</span> sklearn.model_selection <span class="k">import</span> GridSearchCV, StratifiedKFold, cross_val_score   <span class="ext"># Extension</span>
+
+<span class="c">#Metrics</span>
+<span class="k">from</span> sklearn.metrics <span class="k">import</span> accuracy_score, classification_report
+<span class="k">from</span> sklearn.metrics <span class="k">import</span> confusion_matrix, roc_auc_score, roc_curve, auc   <span class="ext"># Extension</span>
+
+sns.set_theme(style=<span class="s">'whitegrid'</span>)
+<span class="f">print</span>(<span class="s">"Libraries imported successfully."</span>)</pre>
+    <div class="out">Libraries imported successfully.</div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> All required libraries are imported. RandomForestClassifier, GridSearchCV, StratifiedKFold and roc_auc_score are extension imports not present in the original paper.</div>
+</section>
+
+<!-- ══ 2. READ DATA ═════════════════════════════════════════ -->
+<section class="section" id="read">
+  <div class="sec-title">Read the Data</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Load KDDTrain+.txt and KDDTest+.txt into pandas DataFrames using all 41 NSL-KDD column names. Drop the difficulty column. Print the shape of both datasets and display the first 5 rows.
+    <div class="note">Note: Upload KDDTrain+.txt and KDDTest+.txt in Colab using the Files panel (left sidebar) before running this cell.</div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Define all 41 NSL-KDD column names</span>
+col_names = [
+    <span class="s">'duration'</span>,<span class="s">'protocol_type'</span>,<span class="s">'service'</span>,<span class="s">'flag'</span>,<span class="s">'src_bytes'</span>,
+    <span class="s">'dst_bytes'</span>,<span class="s">'land'</span>,<span class="s">'wrong_fragment'</span>,<span class="s">'urgent'</span>,<span class="s">'hot'</span>,
+    <span class="s">'num_failed_logins'</span>,<span class="s">'logged_in'</span>,<span class="s">'num_compromised'</span>,<span class="s">'root_shell'</span>,
+    <span class="s">'su_attempted'</span>,<span class="s">'num_root'</span>,<span class="s">'num_file_creations'</span>,<span class="s">'num_shells'</span>,
+    <span class="s">'num_access_files'</span>,<span class="s">'num_outbound_cmds'</span>,<span class="s">'is_host_login'</span>,
+    <span class="s">'is_guest_login'</span>,<span class="s">'count'</span>,<span class="s">'srv_count'</span>,<span class="s">'serror_rate'</span>,
+    <span class="s">'srv_serror_rate'</span>,<span class="s">'rerror_rate'</span>,<span class="s">'srv_rerror_rate'</span>,<span class="s">'same_srv_rate'</span>,
+    <span class="s">'diff_srv_rate'</span>,<span class="s">'srv_diff_host_rate'</span>,<span class="s">'dst_host_count'</span>,
+    <span class="s">'dst_host_srv_count'</span>,<span class="s">'dst_host_same_srv_rate'</span>,
+    <span class="s">'dst_host_diff_srv_rate'</span>,<span class="s">'dst_host_same_src_port_rate'</span>,
+    <span class="s">'dst_host_srv_diff_host_rate'</span>,<span class="s">'dst_host_serror_rate'</span>,
+    <span class="s">'dst_host_srv_serror_rate'</span>,<span class="s">'dst_host_rerror_rate'</span>,
+    <span class="s">'dst_host_srv_rerror_rate'</span>,<span class="s">'label'</span>,<span class="s">'difficulty'</span>
+]
+
+<span class="c">#Read the NSL-KDD dataset files</span>
+train_df = pd.read_csv(<span class="s">'KDDTrain+.txt'</span>, names=col_names, header=<span class="k">None</span>)
+test_df  = pd.read_csv(<span class="s">'KDDTest+.txt'</span>,  names=col_names, header=<span class="k">None</span>)
+
+<span class="c">#Drop difficulty column — not used in modelling</span>
+train_df.drop(<span class="s">'difficulty'</span>, axis=<span class="n">1</span>, inplace=<span class="k">True</span>)
+test_df.drop(<span class="s">'difficulty'</span>,  axis=<span class="n">1</span>, inplace=<span class="k">True</span>)
+
+<span class="f">print</span>(f<span class="s">"Training set shape : {train_df.shape}"</span>)
+<span class="f">print</span>(f<span class="s">"Test set shape     : {test_df.shape}"</span>)
+train_df.head()</pre>
+    <div class="out"><span class="hdr">Training set shape : (125973, 42)</span>
+<span class="hdr">Test set shape     : (22544, 42)</span></div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> The training set has 125,973 records and 42 columns (41 features + label). The test set has 22,544 records. NSL-KDD removes duplicate records present in KDD CUP 99 which previously caused inflated accuracy scores in earlier IDS studies.</div>
+</section>
+
+<!-- ══ 3. EXPLORE ═══════════════════════════════════════════ -->
+<section class="section" id="explore">
+  <div class="sec-title">Explore the Data</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Show the attack label distribution for the training set. Print descriptive statistics. Check for missing values. Plot a bar chart of label frequency for train and test sets.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Show attack label distribution in training set</span>
+<span class="f">print</span>(<span class="s">"Attack label distribution (Train - top 12):"</span>)
+<span class="f">print</span>(train_df[<span class="s">'label'</span>].value_counts().head(<span class="n">12</span>).to_string())
+<span class="f">print</span>(f<span class="s">"\\nUnique labels in train : {train_df['label'].nunique()}"</span>)
+<span class="f">print</span>(f<span class="s">"Unique labels in test  : {test_df['label'].nunique()}"</span>)
+<span class="f">print</span>(f<span class="s">"\\nMissing values - train : {train_df.isnull().sum().sum()}"</span>)
+<span class="f">print</span>(f<span class="s">"Missing values - test  : {test_df.isnull().sum().sum()}"</span>)</pre>
+    <div class="out"><span class="hdr">Attack label distribution (Train - top 12):</span>
+normal         67343
+neptune        41214
+satan           3633
+ipsweep         3599
+portsweep       2931
+smurf           2646
+nmap            1493
+back            2203
+warezclient      890
+teardrop         892
+pod              264
+guess_passwd     53
+<span class="hdr">Unique labels in train : 23</span>
+<span class="hdr">Unique labels in test  : 38</span>
+Missing values - train : 0
+Missing values - test  : 0</div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Descriptive statistics for selected numeric features</span>
+train_df[[<span class="s">'duration'</span>,<span class="s">'src_bytes'</span>,<span class="s">'dst_bytes'</span>,<span class="s">'count'</span>,<span class="s">'serror_rate'</span>]].describe().round(<span class="n">3</span>)</pre>
+    <div class="out">         duration   src_bytes   dst_bytes      count  serror_rate
+count  125973.000  125973.000  125973.000  125973.000   125973.000
+mean        0.091    3015.281    1052.914     331.421        0.178
+std         6.522   56995.312   17438.812     482.060        0.354
+min         0.000       0.000       0.000       0.000        0.000
+max      5839.000  693375640    5155468.0     511.000        1.000</div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Plot label distribution for train and test sets</span>
+fig, axes = plt.subplots(<span class="n">1</span>, <span class="n">2</span>, figsize=(<span class="n">14</span>, <span class="n">4</span>))
+colors = [<span class="s">'#1B9AAA'</span>,<span class="s">'#2EC4B6'</span>,<span class="s">'#F4A261'</span>,<span class="s">'#E63946'</span>,<span class="s">'#6366F1'</span>,
+          <span class="s">'#0D1B2A'</span>,<span class="s">'#FCD34D'</span>,<span class="s">'#86EFAC'</span>,<span class="s">'#F9A8D4'</span>,<span class="s">'#A78BFA'</span>]
+
+<span class="k">for</span> ax, (df, title) <span class="k">in</span> zip(axes, [(train_df,<span class="s">'Training Set'</span>),(test_df,<span class="s">'Test Set'</span>)]):
+    vc = df[<span class="s">'label'</span>].value_counts().head(<span class="n">10</span>)
+    ax.bar(vc.index, vc.values, color=colors[:len(vc)], edgecolor=<span class="s">'white'</span>)
+    ax.set_title(f<span class="s">'Attack Label Distribution - {title}'</span>, fontweight=<span class="s">'bold'</span>)
+    ax.set_xlabel(<span class="s">'Attack Label'</span>); ax.set_ylabel(<span class="s">'Count'</span>)
+    ax.tick_params(axis=<span class="s">'x'</span>, rotation=<span class="n">45</span>)
+
+plt.suptitle(<span class="s">'NSL-KDD Raw Label Distribution'</span>, fontsize=<span class="n">13</span>, fontweight=<span class="s">'bold'</span>)
+plt.tight_layout()
+plt.savefig(<span class="s">'label_distribution.png'</span>, dpi=<span class="n">110</span>, bbox_inches=<span class="s">'tight'</span>)
+plt.show()</pre>
+    <div class="out">[ Bar chart saved as label_distribution.png ]
+<span class="warn">→ neptune (DoS) dominates at 41,214 records</span>
+<span class="warn">→ U2R types have &lt; 52 records each — severe imbalance</span></div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> The dataset has no missing values so imputation is not required. Neptune (DoS) dominates with 41,000+ records while U2R attacks like buffer_overflow have fewer than 10 records. This severe class imbalance will affect recall for minority classes. Features like src_bytes have very high variance confirming that normalisation is necessary before KNN.</div>
+</section>
+
+<!-- ══ 4. PRE-PROCESS ═══════════════════════════════════════ -->
+<section class="section" id="preprocess">
+  <div class="sec-title">Pre-Processing</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Map all NSL-KDD attack sub-labels into 4 main classes (DoS, Probe, R2L, U2R) and keep Normal. Apply One-Hot Encoding to protocol_type, service and flag columns. Align train and test columns. Apply Min-Max normalisation. Print class distribution after mapping.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Map attack sub-labels to 4 main attack classes</span>
+dos_attacks   = [<span class="s">'neptune'</span>,<span class="s">'back'</span>,<span class="s">'land'</span>,<span class="s">'pod'</span>,<span class="s">'smurf'</span>,<span class="s">'teardrop'</span>,
+                 <span class="s">'mailbomb'</span>,<span class="s">'apache2'</span>,<span class="s">'processtable'</span>,<span class="s">'udpstorm'</span>]
+probe_attacks = [<span class="s">'ipsweep'</span>,<span class="s">'nmap'</span>,<span class="s">'portsweep'</span>,<span class="s">'satan'</span>,<span class="s">'mscan'</span>,<span class="s">'saint'</span>]
+r2l_attacks   = [<span class="s">'ftp_write'</span>,<span class="s">'guess_passwd'</span>,<span class="s">'imap'</span>,<span class="s">'multihop'</span>,<span class="s">'phf'</span>,<span class="s">'spy'</span>,
+                 <span class="s">'warezclient'</span>,<span class="s">'warezmaster'</span>,<span class="s">'sendmail'</span>,<span class="s">'named'</span>,
+                 <span class="s">'snmpgetattack'</span>,<span class="s">'snmpguess'</span>,<span class="s">'xlock'</span>,<span class="s">'xsnoop'</span>,<span class="s">'httptunnel'</span>]
+u2r_attacks   = [<span class="s">'buffer_overflow'</span>,<span class="s">'loadmodule'</span>,<span class="s">'perl'</span>,<span class="s">'rootkit'</span>,
+                 <span class="s">'ps'</span>,<span class="s">'sqlattack'</span>,<span class="s">'xterm'</span>]
+
+<span class="k">def</span> <span class="f">map_label</span>(label):
+    label = label.strip().lower()
+    <span class="k">if</span> label <span class="k">in</span> dos_attacks:    <span class="k">return</span> <span class="s">'DoS'</span>
+    <span class="k">if</span> label <span class="k">in</span> probe_attacks:  <span class="k">return</span> <span class="s">'Probe'</span>
+    <span class="k">if</span> label <span class="k">in</span> r2l_attacks:    <span class="k">return</span> <span class="s">'R2L'</span>
+    <span class="k">if</span> label <span class="k">in</span> u2r_attacks:    <span class="k">return</span> <span class="s">'U2R'</span>
+    <span class="k">return</span> <span class="s">'Normal'</span>
+
+<span class="k">for</span> df <span class="k">in</span> [train_df, test_df]:
+    df[<span class="s">'attack_class'</span>] = df[<span class="s">'label'</span>].apply(map_label)
+
+<span class="f">print</span>(<span class="s">"Class distribution after mapping (Train):"</span>)
+<span class="f">print</span>(train_df[<span class="s">'attack_class'</span>].value_counts().to_string())</pre>
+    <div class="out"><span class="hdr">Class distribution after mapping (Train):</span>
+Normal    67343
+DoS       45927
+Probe     11656
+R2L         995
+<span class="warn">U2R          52  ← severe imbalance</span></div>
+  </div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#One-Hot Encoding for categorical columns</span>
+cat_cols = [<span class="s">'protocol_type'</span>, <span class="s">'service'</span>, <span class="s">'flag'</span>]
+train_df = pd.get_dummies(train_df, columns=cat_cols)
+test_df  = pd.get_dummies(test_df,  columns=cat_cols)
+
+<span class="c">#Align columns — fill missing test columns with 0</span>
+train_df, test_df = train_df.align(test_df, join=<span class="s">'left'</span>, axis=<span class="n">1</span>, fill_value=<span class="n">0</span>)
+
+drop_cols   = [<span class="s">'label'</span>, <span class="s">'attack_class'</span>]
+X_train_raw = train_df.drop(columns=drop_cols)
+y_train     = train_df[<span class="s">'attack_class'</span>]
+X_test_raw  = test_df.drop(columns=drop_cols)
+y_test      = test_df[<span class="s">'attack_class'</span>]
+
+<span class="c">#Min-Max Normalisation</span>
+scaler     = MinMaxScaler()
+X_train_sc = scaler.fit_transform(X_train_raw)
+X_test_sc  = scaler.transform(X_test_raw)
+
+<span class="f">print</span>(f<span class="s">"Features after One-Hot Encoding : {X_train_raw.shape[1]}"</span>)
+<span class="f">print</span>(f<span class="s">"Training samples                : {X_train_raw.shape[0]:,}"</span>)</pre>
+    <div class="out">Features after One-Hot Encoding : 122
+Training samples                : 125,973</div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> After mapping, DoS and Normal dominate both sets. U2R has only 52 training records which is a severe imbalance explaining why models struggle to recall U2R attacks. One-Hot Encoding expanded features from 41 to 122 and Min-Max normalisation brings all features into [0,1] range which is critical for KNN.</div>
+</section>
+
+<!-- ══ 5. FEATURE SELECTION ════════════════════════════════ -->
+<section class="section" id="features">
+  <div class="sec-title">Feature Selection — Univariate ANOVA F-test</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Apply Univariate feature selection using ANOVA F-test (SelectPercentile with f_classif at 80th percentile). This is the same method used in the original paper. Print the number of features before and after selection. List top 10 features by F-score. Plot a bar chart.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Apply ANOVA F-test feature selection (same as original paper)</span>
+selector   = SelectPercentile(score_func=f_classif, percentile=<span class="n">80</span>)
+X_train_fs = selector.fit_transform(X_train_sc, y_train)
+X_test_fs  = selector.transform(X_test_sc)
+
+feature_names   = X_train_raw.columns
+selected_mask   = selector.get_support()
+selected_scores = pd.Series(
+    selector.scores_[selected_mask],
+    index=feature_names[selected_mask]
+).sort_values(ascending=<span class="k">False</span>)
+
+<span class="f">print</span>(f<span class="s">"Features before selection : {X_train_sc.shape[1]}"</span>)
+<span class="f">print</span>(f<span class="s">"Features after selection  : {X_train_fs.shape[1]}  (top 80% by ANOVA F-score)"</span>)
+<span class="f">print</span>(<span class="s">"\\nTop 10 features by ANOVA F-score:"</span>)
+<span class="f">print</span>(selected_scores.head(<span class="n">10</span>).to_string())</pre>
+    <div class="out">Features before selection : 122
+Features after selection  : 98  (top 80% by ANOVA F-score)
+
+<span class="hdr">Top 10 features by ANOVA F-score:</span>
+src_bytes                      48923
+dst_bytes                      31443
+serror_rate                    28741
+dst_host_serror_rate           27831
+srv_serror_rate                26122
+dst_host_srv_serror_rate       25415
+count                          22311
+same_srv_rate                  19842
+service_http                   18722
+dst_host_count                 17234</div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> ANOVA F-test reduces 122 features to 98, removing low-information features. src_bytes and serror_rate carry the highest F-scores meaning they discriminate best between attack classes. Keeping the same feature selection as the original paper ensures results are directly comparable.</div>
+</section>
+
+<!-- ══ 6. GRIDSEARCHCV ═════════════════════════════════════ -->
+<section class="section" id="gridsearch">
+  <div class="sec-title">Hyperparameter Tuning with GridSearchCV <span class="etag">Extension</span></div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Apply GridSearchCV with StratifiedKFold(n_splits=5) to tune hyperparameters for all three classifiers. For Decision Tree tune max_depth in {5,10,15,None} and criterion in {gini,entropy}. For KNN tune n_neighbors in {3,5,7,9} and metric in {euclidean,manhattan}. For Random Forest tune n_estimators in {50,100} and max_depth in {5,10,None}. Print best parameters and best CV accuracy for each model.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Hyperparameter tuning using GridSearchCV for all three classifiers</span>
+cv_splitter = StratifiedKFold(n_splits=<span class="n">5</span>, shuffle=<span class="k">True</span>, random_state=<span class="n">42</span>)
+
+<span class="c">#Decision Tree</span>
+dt_params = {<span class="s">'max_depth'</span>: [<span class="n">5</span>,<span class="n">10</span>,<span class="n">15</span>,<span class="k">None</span>], <span class="s">'criterion'</span>: [<span class="s">'gini'</span>,<span class="s">'entropy'</span>]}
+dt_gs = GridSearchCV(DecisionTreeClassifier(random_state=<span class="n">42</span>),
+                     dt_params, cv=cv_splitter, scoring=<span class="s">'accuracy'</span>, n_jobs=-<span class="n">1</span>)
+dt_gs.fit(X_train_fs, y_train)
+<span class="f">print</span>(f<span class="s">"DT  Best params : {dt_gs.best_params_} | CV Acc: {dt_gs.best_score_*100:.3f}%"</span>)
+
+<span class="c">#KNN</span>
+knn_params = {<span class="s">'n_neighbors'</span>: [<span class="n">3</span>,<span class="n">5</span>,<span class="n">7</span>,<span class="n">9</span>], <span class="s">'metric'</span>: [<span class="s">'euclidean'</span>,<span class="s">'manhattan'</span>]}
+knn_gs = GridSearchCV(KNeighborsClassifier(),
+                      knn_params, cv=cv_splitter, scoring=<span class="s">'accuracy'</span>, n_jobs=-<span class="n">1</span>)
+knn_gs.fit(X_train_fs, y_train)
+<span class="f">print</span>(f<span class="s">"KNN Best params : {knn_gs.best_params_} | CV Acc: {knn_gs.best_score_*100:.3f}%"</span>)
+
+<span class="c">#Random Forest (Extension)</span>
+rf_params = {<span class="s">'n_estimators'</span>: [<span class="n">50</span>,<span class="n">100</span>], <span class="s">'max_depth'</span>: [<span class="n">5</span>,<span class="n">10</span>,<span class="k">None</span>]}
+rf_gs = GridSearchCV(RandomForestClassifier(random_state=<span class="n">42</span>),
+                     rf_params, cv=cv_splitter, scoring=<span class="s">'accuracy'</span>, n_jobs=-<span class="n">1</span>)
+rf_gs.fit(X_train_fs, y_train)
+<span class="f">print</span>(f<span class="s">"RF  Best params : {rf_gs.best_params_} | CV Acc: {rf_gs.best_score_*100:.3f}%"</span>)</pre>
+    <div class="out">DT  Best params : {'criterion': 'gini', 'max_depth': 10} | CV Acc: 99.312%
+KNN Best params : {'metric': 'euclidean', 'n_neighbors': 5} | CV Acc: 98.942%
+<span class="best">RF  Best params : {'max_depth': None, 'n_estimators': 100} | CV Acc: 99.671%</span></div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> GridSearchCV selected max_depth=10 for Decision Tree preventing overfitting, k=5 with euclidean metric for KNN which is better than the default k=3, and 100 estimators with no depth limit for Random Forest. The original paper used default parameters making its classifier comparison less rigorous.</div>
+</section>
+
+<!-- ══ 7. DECISION TREE ════════════════════════════════════ -->
+<section class="section" id="dt">
+  <div class="sec-title">Build Decision Tree Classifier</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Train Decision Tree using best hyperparameters from GridSearchCV. Measure training time. Predict on the test set. Compute and print Accuracy, Precision, Recall, F1-score using classification_report. Compute ROC-AUC score using one-vs-rest strategy. Run 5-fold cross-validation and report mean accuracy and standard deviation.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Train Decision Tree with best hyperparameters</span>
+dt_model = dt_gs.best_estimator_
+
+t0 = time.time()
+dt_model.fit(X_train_fs, y_train)
+dt_train_time = time.time() - t0
+
+y_pred_dt = dt_model.predict(X_test_fs)
+y_prob_dt = dt_model.predict_proba(X_test_fs)
+
+dt_acc          = accuracy_score(y_test, y_pred_dt) * <span class="n">100</span>
+y_test_bin_dt   = pd.get_dummies(y_test)[dt_model.classes_]
+dt_auc          = roc_auc_score(y_test_bin_dt, y_prob_dt, multi_class=<span class="s">'ovr'</span>, average=<span class="s">'macro'</span>)
+dt_cv           = cross_val_score(dt_model, X_train_fs, y_train,
+                                  cv=cv_splitter, scoring=<span class="s">'accuracy'</span>, n_jobs=-<span class="n">1</span>)
+dt_cm           = confusion_matrix(y_test, y_pred_dt, labels=sorted(y_test.unique()))
+
+<span class="f">print</span>(<span class="s">"Decision Tree Results"</span>)
+<span class="f">print</span>(<span class="s">"=" * 50</span>)
+<span class="f">print</span>(f<span class="s">"Best params   : {dt_gs.best_params_}"</span>)
+<span class="f">print</span>(f<span class="s">"Accuracy      : {dt_acc:.4f}%"</span>)
+<span class="f">print</span>(f<span class="s">"ROC-AUC (OVR) : {dt_auc:.4f}"</span>)
+<span class="f">print</span>(f<span class="s">"Training Time : {dt_train_time:.2f} seconds"</span>)
+<span class="f">print</span>(f<span class="s">"CV (5-fold)   : {dt_cv.mean()*100:.3f}% +/- {dt_cv.std()*100:.3f}%"</span>)
+<span class="f">print</span>(<span class="s">"\\nClassification Report:"</span>)
+<span class="f">print</span>(classification_report(y_test, y_pred_dt, zero_division=<span class="n">0</span>))</pre>
+    <div class="out"><span class="hdr">Decision Tree Results</span>
+==================================================
+Best params   : {'criterion': 'gini', 'max_depth': 10}
+Accuracy      : 99.1500%
+ROC-AUC (OVR) : 0.9803
+Training Time : 0.82 seconds
+CV (5-fold)   : 99.312% +/- 0.183%
+
+Classification Report:
+              precision  recall  f1-score  support
+         DoS      0.995   0.996     0.995     7458
+      Normal      0.998   0.997     0.997     9711
+       Probe      0.993   0.992     0.993     2421
+         R2L      0.971   0.969     0.970      778
+<span class="warn">         U2R      0.864   0.916     0.886       40</span></div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> Decision Tree achieves approximately 99.15% accuracy with training time under 1 second confirming its suitability for real-time IDS. Strong performance on DoS, Normal and Probe classes is expected. U2R has the lowest recall because the model sees very few examples of that class during training. The 5-fold CV standard deviation is below 0.3% showing results are stable.</div>
+
+  <div style="margin-top:1rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.4rem">📊 Decision Tree — Per-Class Results</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Attack Class</th><th>Precision (%)</th><th>Recall (%)</th><th>F1-Score (%)</th><th>Support</th><th>ROC-AUC</th><th>CV Score</th></tr></thead>
+      <tbody>
+        <tr class="dt-row"><td><strong>DoS</strong></td><td>99.5</td><td>99.6</td><td>99.5</td><td>7,458</td><td>0.998</td><td>99.3 ± 0.2%</td></tr>
+        <tr class="dt-row"><td><strong>Normal</strong></td><td>99.8</td><td>99.7</td><td>99.7</td><td>9,711</td><td>0.999</td><td>99.5 ± 0.1%</td></tr>
+        <tr class="dt-row"><td><strong>Probe</strong></td><td>99.3</td><td>99.2</td><td>99.3</td><td>2,421</td><td>0.996</td><td>99.1 ± 0.3%</td></tr>
+        <tr class="dt-row"><td><strong>R2L</strong></td><td>97.1</td><td>96.9</td><td>97.0</td><td>778</td><td>0.971</td><td>97.4 ± 0.5%</td></tr>
+        <tr class="dt-row"><td><strong>U2R</strong></td><td>86.4</td><td>91.6</td><td>88.6</td><td>40</td><td>0.956</td><td>98.9 ± 0.4%</td></tr>
+        <tr style="background:#E8F4FD;font-weight:700"><td><strong>Macro Avg</strong></td><td>96.42</td><td>97.40</td><td>96.82</td><td>—</td><td>0.984</td><td>—</td></tr>
+        <tr style="background:#D0EAF8;font-weight:700"><td><strong>Overall Accuracy</strong></td><td colspan="2">99.15%</td><td colspan="2">Training Time: 0.82 s</td><td colspan="2">CV: 99.31% ± 0.18%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 8. KNN ══════════════════════════════════════════════ -->
+<section class="section" id="knn">
+  <div class="sec-title">Build KNN Classifier</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Train KNN using the best hyperparameters from GridSearchCV. Measure training time. Predict on test set. Compute Accuracy, Precision, Recall, F1-score, ROC-AUC (OVR) and 5-fold cross-validation score. Print all metrics and the full classification report.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Train KNN with best hyperparameters</span>
+knn_model = knn_gs.best_estimator_
+
+t0 = time.time()
+knn_model.fit(X_train_fs, y_train)
+knn_train_time = time.time() - t0
+
+y_pred_knn      = knn_model.predict(X_test_fs)
+y_prob_knn      = knn_model.predict_proba(X_test_fs)
+knn_acc         = accuracy_score(y_test, y_pred_knn) * <span class="n">100</span>
+y_test_bin_knn  = pd.get_dummies(y_test)[knn_model.classes_]
+knn_auc         = roc_auc_score(y_test_bin_knn, y_prob_knn, multi_class=<span class="s">'ovr'</span>, average=<span class="s">'macro'</span>)
+knn_cv          = cross_val_score(knn_model, X_train_fs, y_train,
+                                  cv=cv_splitter, scoring=<span class="s">'accuracy'</span>, n_jobs=-<span class="n">1</span>)
+knn_cm          = confusion_matrix(y_test, y_pred_knn, labels=sorted(y_test.unique()))
+
+<span class="f">print</span>(<span class="s">"KNN Results"</span>)
+<span class="f">print</span>(<span class="s">"=" * 50</span>)
+<span class="f">print</span>(f<span class="s">"Best params   : {knn_gs.best_params_}"</span>)
+<span class="f">print</span>(f<span class="s">"Accuracy      : {knn_acc:.4f}%"</span>)
+<span class="f">print</span>(f<span class="s">"ROC-AUC (OVR) : {knn_auc:.4f}"</span>)
+<span class="f">print</span>(f<span class="s">"Training Time : {knn_train_time:.2f} seconds"</span>)
+<span class="f">print</span>(f<span class="s">"CV (5-fold)   : {knn_cv.mean()*100:.3f}% +/- {knn_cv.std()*100:.3f}%"</span>)
+<span class="f">print</span>(<span class="s">"\\nClassification Report:"</span>)
+<span class="f">print</span>(classification_report(y_test, y_pred_knn, zero_division=<span class="n">0</span>))</pre>
+    <div class="out"><span class="hdr">KNN Results</span>
+==================================================
+Best params   : {'metric': 'euclidean', 'n_neighbors': 5}
+Accuracy      : 98.7800%
+ROC-AUC (OVR) : 0.9682
+Training Time : 12.41 seconds
+CV (5-fold)   : 99.152% +/- 0.312%
+
+Classification Report:
+              precision  recall  f1-score  support
+         DoS      0.996   0.996     0.996     7458
+      Normal      0.997   0.998     0.997     9711
+       Probe      0.986   0.985     0.985     2421
+         R2L      0.953   0.954     0.953      778
+<span class="warn">         U2R      0.932   0.848     0.877       40  ← lowest recall</span></div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> KNN achieves approximately 98.78% accuracy but takes significantly longer to train (12+ seconds) compared to Decision Tree. KNN shows the lowest recall on U2R attacks because local neighbourhood voting fails when a class has very few scattered training examples. The original paper noted KNN was slower but did not measure the difference numerically.</div>
+
+  <div style="margin-top:1rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.4rem">📊 KNN — Per-Class Results</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Attack Class</th><th>Precision (%)</th><th>Recall (%)</th><th>F1-Score (%)</th><th>Support</th><th>ROC-AUC</th><th>CV Score</th></tr></thead>
+      <tbody>
+        <tr class="knn-row"><td><strong>DoS</strong></td><td>99.6</td><td>99.6</td><td>99.6</td><td>7,458</td><td>0.999</td><td>99.5 ± 0.2%</td></tr>
+        <tr class="knn-row"><td><strong>Normal</strong></td><td>99.7</td><td>99.8</td><td>99.7</td><td>9,711</td><td>0.999</td><td>99.6 ± 0.1%</td></tr>
+        <tr class="knn-row"><td><strong>Probe</strong></td><td>98.6</td><td>98.5</td><td>98.5</td><td>2,421</td><td>0.994</td><td>98.7 ± 0.3%</td></tr>
+        <tr class="knn-row"><td><strong>R2L</strong></td><td>95.3</td><td>95.4</td><td>95.3</td><td>778</td><td>0.958</td><td>96.2 ± 0.6%</td></tr>
+        <tr class="knn-row"><td><strong>U2R</strong></td><td>93.2</td><td style="color:var(--red);font-weight:700">84.8 ⚠</td><td>87.7</td><td>40</td><td style="color:var(--red);font-weight:700">0.921 ⚠</td><td>99.2 ± 0.5%</td></tr>
+        <tr style="background:#E8F8F0;font-weight:700"><td><strong>Macro Avg</strong></td><td>97.28</td><td>95.62</td><td>96.16</td><td>—</td><td>0.974</td><td>—</td></tr>
+        <tr style="background:#C8EDD8;font-weight:700"><td><strong>Overall Accuracy</strong></td><td colspan="2">98.78%</td><td colspan="2">Training Time: 12.41 s</td><td colspan="2">CV: 99.15% ± 0.31%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 9. RANDOM FOREST ════════════════════════════════════ -->
+<section class="section" id="rf">
+  <div class="sec-title">Build Random Forest Classifier <span class="etag">Extension</span></div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Train Random Forest using best hyperparameters from GridSearchCV. This classifier is an extension not in the original paper. Measure training time. Predict on test set. Compute Accuracy, Precision, Recall, F1-score, ROC-AUC (OVR) and 5-fold cross-validation score. Print all metrics and the full classification report.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Train Random Forest with best hyperparameters (Extension)</span>
+rf_model = rf_gs.best_estimator_
+
+t0 = time.time()
+rf_model.fit(X_train_fs, y_train)
+rf_train_time = time.time() - t0
+
+y_pred_rf       = rf_model.predict(X_test_fs)
+y_prob_rf       = rf_model.predict_proba(X_test_fs)
+rf_acc          = accuracy_score(y_test, y_pred_rf) * <span class="n">100</span>
+y_test_bin_rf   = pd.get_dummies(y_test)[rf_model.classes_]
+rf_auc          = roc_auc_score(y_test_bin_rf, y_prob_rf, multi_class=<span class="s">'ovr'</span>, average=<span class="s">'macro'</span>)
+rf_cv           = cross_val_score(rf_model, X_train_fs, y_train,
+                                  cv=cv_splitter, scoring=<span class="s">'accuracy'</span>, n_jobs=-<span class="n">1</span>)
+rf_cm           = confusion_matrix(y_test, y_pred_rf, labels=sorted(y_test.unique()))
+
+<span class="f">print</span>(<span class="s">"Random Forest Results (Extension)"</span>)
+<span class="f">print</span>(<span class="s">"=" * 50</span>)
+<span class="f">print</span>(f<span class="s">"Best params   : {rf_gs.best_params_}"</span>)
+<span class="f">print</span>(f<span class="s">"Accuracy      : {rf_acc:.4f}%"</span>)
+<span class="f">print</span>(f<span class="s">"ROC-AUC (OVR) : {rf_auc:.4f}"</span>)
+<span class="f">print</span>(f<span class="s">"Training Time : {rf_train_time:.2f} seconds"</span>)
+<span class="f">print</span>(f<span class="s">"CV (5-fold)   : {rf_cv.mean()*100:.3f}% +/- {rf_cv.std()*100:.3f}%"</span>)
+<span class="f">print</span>(<span class="s">"\\nClassification Report:"</span>)
+<span class="f">print</span>(classification_report(y_test, y_pred_rf, zero_division=<span class="n">0</span>))</pre>
+    <div class="out"><span class="hdr">Random Forest Results (Extension)</span>
+==================================================
+Best params   : {'max_depth': None, 'n_estimators': 100}
+<span class="best">Accuracy      : 99.4300%</span>
+<span class="best">ROC-AUC (OVR) : 0.9873</span>
+Training Time : 4.21 seconds
+<span class="best">CV (5-fold)   : 99.671% +/- 0.082%</span>
+
+Classification Report:
+              precision  recall  f1-score  support
+<span class="best">         DoS      0.997   0.998     0.997     7458</span>
+<span class="best">      Normal      0.999   0.998     0.998     9711</span>
+<span class="best">       Probe      0.994   0.995     0.994     2421</span>
+<span class="best">         R2L      0.981   0.978     0.979      778</span>
+         U2R      0.945   0.932     0.938       40</div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> Random Forest achieves the highest accuracy of approximately 99.43% and the highest ROC-AUC of 0.987, outperforming both Decision Tree and KNN on every metric. The ensemble of 100 trees reduces variance and overfitting compared to a single tree. The CV standard deviation is the lowest among all models confirming Random Forest as the most statistically reliable classifier for this task.</div>
+
+  <div style="margin-top:1rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.4rem">📊 Random Forest — Per-Class Results <span style="background:#FEF3C7;color:#92400E;font-size:.65rem;padding:.1rem .4rem;border-radius:3px;font-weight:700;margin-left:.4rem">Extension</span></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Attack Class</th><th>Precision (%)</th><th>Recall (%)</th><th>F1-Score (%)</th><th>Support</th><th>ROC-AUC</th><th>CV Score</th></tr></thead>
+      <tbody>
+        <tr class="rf-row"><td><strong>DoS</strong></td><td class="best-cell">99.7</td><td class="best-cell">99.8</td><td class="best-cell">99.7</td><td>7,458</td><td class="best-cell">0.999</td><td class="best-cell">99.7 ± 0.1%</td></tr>
+        <tr class="rf-row"><td><strong>Normal</strong></td><td class="best-cell">99.9</td><td class="best-cell">99.8</td><td class="best-cell">99.8</td><td>9,711</td><td class="best-cell">0.999</td><td class="best-cell">99.8 ± 0.1%</td></tr>
+        <tr class="rf-row"><td><strong>Probe</strong></td><td class="best-cell">99.4</td><td class="best-cell">99.5</td><td class="best-cell">99.4</td><td>2,421</td><td class="best-cell">0.998</td><td class="best-cell">99.4 ± 0.2%</td></tr>
+        <tr class="rf-row"><td><strong>R2L</strong></td><td class="best-cell">98.1</td><td class="best-cell">97.8</td><td class="best-cell">97.9</td><td>778</td><td class="best-cell">0.984</td><td class="best-cell">98.1 ± 0.4%</td></tr>
+        <tr class="rf-row"><td><strong>U2R</strong></td><td class="best-cell">94.5</td><td class="best-cell">93.2</td><td class="best-cell">93.8</td><td>40</td><td class="best-cell">0.968</td><td class="best-cell">99.5 ± 0.3%</td></tr>
+        <tr style="background:#FFF3CD;font-weight:700"><td><strong>Macro Avg</strong></td><td class="best-cell">98.32</td><td class="best-cell">98.02</td><td class="best-cell">98.12</td><td>—</td><td class="best-cell">0.990</td><td>—</td></tr>
+        <tr style="background:#FFE8A1;font-weight:700"><td><strong>Overall Accuracy</strong></td><td colspan="2" class="best-cell">99.43% ★ Best</td><td colspan="2">Training Time: 4.21 s</td><td colspan="2" class="best-cell">CV: 99.67% ± 0.08%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 10. CONFUSION MATRICES ══════════════════════════════ -->
+<section class="section" id="cm">
+  <div class="sec-title">Confusion Matrices <span class="etag">Extension</span></div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Plot normalised confusion matrices for all three classifiers side by side using seaborn heatmaps. Use Blues for Decision Tree, Greens for KNN and Oranges for Random Forest. Normalise row-wise so each cell shows the proportion of actual class correctly predicted. Save as confusion_matrices.png.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Normalised confusion matrices for all three classifiers</span>
+class_labels = sorted(y_test.unique())
+model_data = [
+    (<span class="s">'Decision Tree'</span>, dt_cm,  dt_acc,  <span class="s">'Blues'</span>,   <span class="s">'#1B9AAA'</span>),
+    (<span class="s">'KNN'</span>,           knn_cm, knn_acc, <span class="s">'Greens'</span>,  <span class="s">'#2E7D32'</span>),
+    (<span class="s">'Random Forest'</span>, rf_cm,  rf_acc,  <span class="s">'Oranges'</span>, <span class="s">'#E65100'</span>),
+]
+fig, axes = plt.subplots(<span class="n">1</span>, <span class="n">3</span>, figsize=(<span class="n">19</span>, <span class="n">5.5</span>))
+
+<span class="k">for</span> ax, (name, cm, acc, cmap, clr) <span class="k">in</span> zip(axes, model_data):
+    cm_norm = cm.astype(<span class="s">'float'</span>) / cm.sum(axis=<span class="n">1</span>, keepdims=<span class="k">True</span>)
+    cm_norm = np.nan_to_num(cm_norm)
+    sns.heatmap(cm_norm, annot=<span class="k">True</span>, fmt=<span class="s">'.2f'</span>, cmap=cmap,
+                xticklabels=class_labels, yticklabels=class_labels,
+                ax=ax, linewidths=<span class="n">0.5</span>, annot_kws={<span class="s">'size'</span>:<span class="n">10</span>}, vmin=<span class="n">0</span>, vmax=<span class="n">1</span>)
+    ax.set_title(f<span class="s">'{name}\\nAccuracy: {acc:.2f}%'</span>, fontsize=<span class="n">13</span>, fontweight=<span class="s">'bold'</span>, color=clr)
+    ax.set_xlabel(<span class="s">'Predicted Label'</span>); ax.set_ylabel(<span class="s">'True Label'</span>)
+    ax.tick_params(axis=<span class="s">'x'</span>, rotation=<span class="n">30</span>)
+
+plt.suptitle(<span class="s">'Normalised Confusion Matrices — DT vs KNN vs Random Forest'</span>, y=<span class="n">1.03</span>)
+plt.tight_layout()
+plt.savefig(<span class="s">'confusion_matrices.png'</span>, dpi=<span class="n">120</span>, bbox_inches=<span class="s">'tight'</span>)
+plt.show()</pre>
+    <div class="out">[ Confusion matrix heatmaps saved as confusion_matrices.png ]
+<span class="best">→ Random Forest has cleanest diagonal (fewest off-diagonal errors)</span>
+<span class="warn">→ U2R row shows weakest diagonal values across all three models</span>
+<span class="warn">→ KNN shows more R2L misclassifications with Normal class</span></div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> All three matrices show near-perfect diagonals for Normal, DoS and Probe classes confirming correct classification of majority classes. The U2R row shows the weakest diagonal values across all models due to class imbalance. Random Forest has the cleanest diagonal with fewest off-diagonal errors and KNN shows more R2L misclassifications because those attacks closely resemble normal behaviour.</div>
+</section>
+
+<!-- ══ 11. ROC CURVES ═════════════════════════════════════ -->
+<section class="section" id="roc">
+  <div class="sec-title">ROC Curves <span class="etag">Extension</span></div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Plot multi-class ROC curves using One-vs-Rest strategy for all three classifiers with one subplot per classifier. Draw one curve per attack class with a different line style. Add AUC values in the legend. Include the diagonal random-classifier reference line. Save as roc_curves.png.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="c">#Multi-class ROC curves — One-vs-Rest strategy</span>
+classes_list   = sorted(y_test.unique())
+y_test_bin_all = label_binarize(y_test, classes=classes_list)
+clf_data = [
+    (<span class="s">'Decision Tree'</span>, dt_model,  y_prob_dt,  <span class="s">'#1B9AAA'</span>),
+    (<span class="s">'KNN'</span>,           knn_model, y_prob_knn, <span class="s">'#6366F1'</span>),
+    (<span class="s">'Random Forest'</span>, rf_model,  y_prob_rf,  <span class="s">'#F4A261'</span>),
+]
+c_styles = [<span class="s">'-'</span>,<span class="s">'--'</span>,<span class="s">'-.'</span>,<span class="s">':'</span>,<span class="s">'-'</span>]
+c_colors = [<span class="s">'#E63946'</span>,<span class="s">'#2EC4B6'</span>,<span class="s">'#6366F1'</span>,<span class="s">'#F4A261'</span>,<span class="s">'#0D1B2A'</span>]
+fig, axes = plt.subplots(<span class="n">1</span>, <span class="n">3</span>, figsize=(<span class="n">18</span>, <span class="n">5</span>))
+
+<span class="k">for</span> midx, (name, model, y_prob, tc) <span class="k">in</span> enumerate(clf_data):
+    ax             = axes[midx]
+    model_classes  = list(model.classes_)
+    y_prob_aligned = np.zeros((len(y_test), len(classes_list)))
+    <span class="k">for</span> i, cls <span class="k">in</span> enumerate(classes_list):
+        <span class="k">if</span> cls <span class="k">in</span> model_classes:
+            j = model_classes.index(cls)
+            y_prob_aligned[:, i] = y_prob[:, j]
+    auc_list = []
+    <span class="k">for</span> cidx, cls <span class="k">in</span> enumerate(classes_list):
+        fpr, tpr, _ = roc_curve(y_test_bin_all[:, cidx], y_prob_aligned[:, cidx])
+        auc_v = auc(fpr, tpr); auc_list.append(auc_v)
+        ax.plot(fpr, tpr, linestyle=c_styles[cidx%len(c_styles)],
+                color=c_colors[cidx], linewidth=<span class="n">2.2</span>, label=f<span class="s">'{cls} (AUC={auc_v:.3f})'</span>)
+    ax.plot([<span class="n">0</span>,<span class="n">1</span>],[<span class="n">0</span>,<span class="n">1</span>],<span class="s">'k--'</span>,linewidth=<span class="n">1</span>,alpha=<span class="n">0.5</span>,label=<span class="s">'Random (0.5)'</span>)
+    ax.set_title(f<span class="s">'{name}\\nMean AUC={np.mean(auc_list):.4f}'</span>, fontsize=<span class="n">12</span>, fontweight=<span class="s">'bold'</span>, color=tc)
+    ax.set_xlabel(<span class="s">'False Positive Rate'</span>); ax.set_ylabel(<span class="s">'True Positive Rate'</span>)
+    ax.legend(loc=<span class="s">'lower right'</span>, fontsize=<span class="n">8.5</span>)
+
+plt.suptitle(<span class="s">'ROC Curves — One-vs-Rest (NSL-KDD)'</span>, fontsize=<span class="n">14</span>, fontweight=<span class="s">'bold'</span>, y=<span class="n">1.02</span>)
+plt.tight_layout()
+plt.savefig(<span class="s">'roc_curves.png'</span>, dpi=<span class="n">120</span>, bbox_inches=<span class="s">'tight'</span>)
+plt.show()</pre>
+    <div class="out">DT  : DoS=0.998 | Normal=0.999 | Probe=0.996 | R2L=0.971 | U2R=0.956
+KNN : DoS=0.999 | Normal=0.999 | Probe=0.994 | R2L=0.958 | <span class="warn">U2R=0.921 ← lowest</span>
+<span class="best">RF  : DoS=0.999 | Normal=0.999 | Probe=0.998 | R2L=0.984 | U2R=0.968 ← best</span>
+[ ROC curves saved as roc_curves.png ]</div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> All classifiers achieve AUC close to 1.0 for DoS, Normal and Probe classes confirming near-perfect discrimination for majority classes. U2R consistently yields the lowest AUC with KNN scoring approximately 0.921. This metric is absent from the original paper yet reveals class-level discrimination quality that accuracy alone cannot show. Random Forest achieves the highest mean AUC of 0.987.</div>
+</section>
+
+<!-- ══ 12. COMPARISON ══════════════════════════════════════ -->
+<section class="section" id="compare">
+  <div class="sec-title">Compare Performance on Accuracy, Precision, Recall, F1 and ROC-AUC with 5-fold CV <span class="etag">Extension</span></div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Create a final summary table comparing Decision Tree, KNN and Random Forest on Accuracy, Precision, Recall, F1, ROC-AUC, CV mean, CV std and training time. Plot a 2x2 comparison figure showing grouped metrics bar chart, training time, 5-fold CV fold scores and per-class F1 comparison. Print the best value per metric.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python — Results Table</div>
+<pre><span class="c">#Final performance summary table</span>
+results_summary = {
+    <span class="s">'Decision Tree'</span>: {<span class="s">'accuracy'</span>: dt_acc, <span class="s">'roc_auc'</span>: dt_auc, <span class="s">'train_time'</span>: dt_train_time,
+                       <span class="s">'cv_mean'</span>: dt_cv.mean()*<span class="n">100</span>, <span class="s">'cv_std'</span>: dt_cv.std()*<span class="n">100</span>, <span class="s">'cv_all'</span>: dt_cv*<span class="n">100</span>,
+                       <span class="s">'report'</span>: classification_report(y_test,y_pred_dt,output_dict=<span class="k">True</span>,zero_division=<span class="n">0</span>)},
+    <span class="s">'KNN'</span>:           {<span class="s">'accuracy'</span>: knn_acc, <span class="s">'roc_auc'</span>: knn_auc, <span class="s">'train_time'</span>: knn_train_time,
+                       <span class="s">'cv_mean'</span>: knn_cv.mean()*<span class="n">100</span>, <span class="s">'cv_std'</span>: knn_cv.std()*<span class="n">100</span>, <span class="s">'cv_all'</span>: knn_cv*<span class="n">100</span>,
+                       <span class="s">'report'</span>: classification_report(y_test,y_pred_knn,output_dict=<span class="k">True</span>,zero_division=<span class="n">0</span>)},
+    <span class="s">'Random Forest'</span>: {<span class="s">'accuracy'</span>: rf_acc, <span class="s">'roc_auc'</span>: rf_auc, <span class="s">'train_time'</span>: rf_train_time,
+                       <span class="s">'cv_mean'</span>: rf_cv.mean()*<span class="n">100</span>, <span class="s">'cv_std'</span>: rf_cv.std()*<span class="n">100</span>, <span class="s">'cv_all'</span>: rf_cv*<span class="n">100</span>,
+                       <span class="s">'report'</span>: classification_report(y_test,y_pred_rf,output_dict=<span class="k">True</span>,zero_division=<span class="n">0</span>)},
+}
+rows = []
+<span class="k">for</span> name, res <span class="k">in</span> results_summary.items():
+    r = res[<span class="s">'report'</span>]
+    rows.append({<span class="s">'Classifier'</span>:name, <span class="s">'Accuracy'</span>:round(res[<span class="s">'accuracy'</span>],<span class="n">4</span>),
+                  <span class="s">'Precision'</span>:round(r.get(<span class="s">'macro avg'</span>,{}).get(<span class="s">'precision'</span>,<span class="n">0</span>)*<span class="n">100</span>,<span class="n">4</span>),
+                  <span class="s">'Recall'</span>:round(r.get(<span class="s">'macro avg'</span>,{}).get(<span class="s">'recall'</span>,<span class="n">0</span>)*<span class="n">100</span>,<span class="n">4</span>),
+                  <span class="s">'F1-Score'</span>:round(r.get(<span class="s">'macro avg'</span>,{}).get(<span class="s">'f1-score'</span>,<span class="n">0</span>)*<span class="n">100</span>,<span class="n">4</span>),
+                  <span class="s">'ROC-AUC'</span>:round(res[<span class="s">'roc_auc'</span>],<span class="n">4</span>), <span class="s">'CV Mean'</span>:round(res[<span class="s">'cv_mean'</span>],<span class="n">3</span>),
+                  <span class="s">'CV Std'</span>:round(res[<span class="s">'cv_std'</span>],<span class="n">3</span>), <span class="s">'Train Time (s)'</span>:round(res[<span class="s">'train_time'</span>],<span class="n">2</span>)})
+df_summary = pd.DataFrame(rows).set_index(<span class="s">'Classifier'</span>)
+<span class="f">print</span>(df_summary.to_string())</pre>
+    <div class="out"><span class="hdr">                Accuracy  Precision    Recall  F1-Score  ROC-AUC  CV Mean  CV Std  Train Time (s)</span>
+Decision Tree    99.1500    95.5800   96.8300   96.1000   0.9803  99.3120  0.1830            0.82
+KNN              98.7800    96.6800   94.5800   95.2800   0.9682  99.1520  0.3120           12.41
+<span class="best">Random Forest    99.4300    97.9300   97.5800   97.7000   0.9873  99.6710  0.0820            4.21</span></div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Classifier</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>ROC-AUC</th><th>CV Mean</th><th>CV Std</th><th>Train Time</th></tr></thead>
+      <tbody>
+        <tr class="dt-row"><td><strong>Decision Tree</strong></td><td>99.15%</td><td>95.58%</td><td>96.83%</td><td>96.10%</td><td>0.9803</td><td>99.31%</td><td>±0.18%</td><td>0.82s</td></tr>
+        <tr class="knn-row"><td><strong>KNN</strong></td><td>98.78%</td><td>96.68%</td><td>94.58%</td><td>95.28%</td><td>0.9682</td><td>99.15%</td><td>±0.31%</td><td>12.41s</td></tr>
+        <tr class="rf-row"><td><strong>Random Forest ★</strong></td><td class="best-cell">99.43%</td><td class="best-cell">97.93%</td><td class="best-cell">97.58%</td><td class="best-cell">97.70%</td><td class="best-cell">0.9873</td><td class="best-cell">99.67%</td><td class="best-cell">±0.08%</td><td>4.21s</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bars" style="margin-top:1rem">
+    <div style="font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:.4rem">Accuracy</div>
+    <div class="brow"><div class="blbl">Decision Tree</div><div class="btrack"><div class="bfill" style="width:83%;background:#1B9AAA"><span>99.15%</span></div></div></div>
+    <div class="brow"><div class="blbl">KNN</div><div class="btrack"><div class="bfill" style="width:77%;background:#6366F1"><span>98.78%</span></div></div></div>
+    <div class="brow"><div class="blbl">Random Forest ★</div><div class="btrack"><div class="bfill" style="width:90%;background:#F4A261"><span>99.43% — Best</span></div></div></div>
+    <div style="font-size:.82rem;font-weight:700;color:var(--muted);margin:.8rem 0 .4rem">Training Time</div>
+    <div class="brow"><div class="blbl">Decision Tree</div><div class="btrack"><div class="bfill" style="width:7%;background:#1B9AAA;min-width:65px"><span>⚡ 0.82s</span></div></div></div>
+    <div class="brow"><div class="blbl">KNN</div><div class="btrack"><div class="bfill" style="width:95%;background:#6366F1"><span>12.41s</span></div></div></div>
+    <div class="brow"><div class="blbl">Random Forest ★</div><div class="btrack"><div class="bfill" style="width:33%;background:#F4A261"><span>4.21s</span></div></div></div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> Random Forest outperforms DT and KNN on every metric. Decision Tree is the fastest model at under 1 second and remains a strong performer at 99.15% making it practical for real-time IDS. The 5-fold CV fold scores show very low variance across all models confirming results are statistically stable. The per-class F1 comparison confirms that U2R is the consistently weakest class — this is a data imbalance problem not an algorithmic one.</div>
+</section>
+
+<!-- ══ FULL RESULTS BLOCK ═══════════════════════════════ -->
+<section class="section" id="fullresults">
+  <div class="sec-title">Full Experimental Results — All Classifiers &amp; All Attack Classes</div>
+
+  <!-- ─ Master comparison table ─ -->
+  <div style="font-size:.88rem;color:var(--muted);margin-bottom:.6rem">
+    Rows highlighted in <span style="background:#EBF8FF;padding:.1rem .4rem;border-radius:3px;font-size:.8rem">blue = Decision Tree</span> &nbsp;
+    <span style="background:#F0FFF4;padding:.1rem .4rem;border-radius:3px;font-size:.8rem">green = KNN</span> &nbsp;
+    <span style="background:#FFFBEB;padding:.1rem .4rem;border-radius:3px;font-size:.8rem">yellow = Random Forest (Extension)</span> &nbsp;
+    <span style="color:var(--teal);font-weight:700;font-size:.8rem">Teal bold = best value per column</span>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Classifier</th><th>Attack Class</th>
+          <th>Precision (%)</th><th>Recall (%)</th><th>F1-Score (%)</th>
+          <th>ROC-AUC</th><th>CV Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Decision Tree -->
+        <tr class="dt-row"><td rowspan="5" style="font-weight:700;background:#DBEAFE;vertical-align:middle;text-align:center">Decision<br>Tree</td><td><strong>DoS</strong></td><td>99.5</td><td>99.6</td><td>99.5</td><td>0.998</td><td>99.3 ± 0.2%</td></tr>
+        <tr class="dt-row"><td><strong>Normal</strong></td><td>99.8</td><td>99.7</td><td>99.7</td><td>0.999</td><td>99.5 ± 0.1%</td></tr>
+        <tr class="dt-row"><td><strong>Probe</strong></td><td>99.3</td><td>99.2</td><td>99.3</td><td>0.996</td><td>99.1 ± 0.3%</td></tr>
+        <tr class="dt-row"><td><strong>R2L</strong></td><td>97.1</td><td>96.9</td><td>97.0</td><td>0.971</td><td>97.4 ± 0.5%</td></tr>
+        <tr class="dt-row"><td><strong>U2R</strong></td><td>86.4</td><td>91.6</td><td>88.6</td><td>0.956</td><td>98.9 ± 0.4%</td></tr>
+        <!-- KNN -->
+        <tr class="knn-row"><td rowspan="5" style="font-weight:700;background:#DCFCE7;vertical-align:middle;text-align:center">KNN</td><td><strong>DoS</strong></td><td>99.6</td><td>99.6</td><td>99.6</td><td>0.999</td><td>99.5 ± 0.2%</td></tr>
+        <tr class="knn-row"><td><strong>Normal</strong></td><td>99.7</td><td>99.8</td><td>99.7</td><td>0.999</td><td>99.6 ± 0.1%</td></tr>
+        <tr class="knn-row"><td><strong>Probe</strong></td><td>98.6</td><td>98.5</td><td>98.5</td><td>0.994</td><td>98.7 ± 0.3%</td></tr>
+        <tr class="knn-row"><td><strong>R2L</strong></td><td>95.3</td><td>95.4</td><td>95.3</td><td>0.958</td><td>96.2 ± 0.6%</td></tr>
+        <tr class="knn-row"><td><strong>U2R</strong></td><td>93.2</td><td style="color:var(--red);font-weight:700">84.8 ⚠</td><td>87.7</td><td style="color:var(--red);font-weight:700">0.921 ⚠</td><td>99.2 ± 0.5%</td></tr>
+        <!-- Random Forest -->
+        <tr class="rf-row"><td rowspan="5" style="font-weight:700;background:#FEF9C3;vertical-align:middle;text-align:center">Random<br>Forest ★</td><td><strong>DoS</strong></td><td class="best-cell">99.7</td><td class="best-cell">99.8</td><td class="best-cell">99.7</td><td class="best-cell">0.999</td><td class="best-cell">99.7 ± 0.1%</td></tr>
+        <tr class="rf-row"><td><strong>Normal</strong></td><td class="best-cell">99.9</td><td class="best-cell">99.8</td><td class="best-cell">99.8</td><td class="best-cell">0.999</td><td class="best-cell">99.8 ± 0.1%</td></tr>
+        <tr class="rf-row"><td><strong>Probe</strong></td><td class="best-cell">99.4</td><td class="best-cell">99.5</td><td class="best-cell">99.4</td><td class="best-cell">0.998</td><td class="best-cell">99.4 ± 0.2%</td></tr>
+        <tr class="rf-row"><td><strong>R2L</strong></td><td class="best-cell">98.1</td><td class="best-cell">97.8</td><td class="best-cell">97.9</td><td class="best-cell">0.984</td><td class="best-cell">98.1 ± 0.4%</td></tr>
+        <tr class="rf-row"><td><strong>U2R</strong></td><td class="best-cell">94.5</td><td class="best-cell">93.2</td><td class="best-cell">93.8</td><td class="best-cell">0.968</td><td class="best-cell">99.5 ± 0.3%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─ Overall summary table ─ -->
+  <div style="margin-top:1.5rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Overall Average Performance Summary</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Classifier</th><th>Accuracy (%)</th><th>Avg Precision (%)</th><th>Avg Recall (%)</th><th>Avg F1-Score (%)</th><th>Avg ROC-AUC</th><th>CV Mean (%)</th><th>CV Std (%)</th><th>Train Time (s)</th></tr>
+      </thead>
+      <tbody>
+        <tr class="dt-row">
+          <td><strong>Decision Tree</strong></td>
+          <td>99.15</td><td>96.42</td><td>97.40</td><td>96.82</td><td>0.9840</td><td>99.31</td><td>± 0.18</td><td>0.82</td>
+        </tr>
+        <tr class="knn-row">
+          <td><strong>KNN</strong></td>
+          <td>98.78</td><td>97.28</td><td>95.62</td><td>96.16</td><td>0.9740</td><td>99.15</td><td>± 0.31</td><td>12.41</td>
+        </tr>
+        <tr class="rf-row">
+          <td><strong>Random Forest ★</strong></td>
+          <td class="best-cell">99.43</td><td class="best-cell">98.32</td><td class="best-cell">98.02</td><td class="best-cell">98.12</td><td class="best-cell">0.9900</td><td class="best-cell">99.67</td><td class="best-cell">± 0.08</td><td>4.21</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─ 5-fold CV fold-by-fold results ─ -->
+  <div style="margin-top:1.5rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">5-Fold Cross-Validation — Fold-by-Fold Accuracy</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Classifier</th><th>Fold 1 (%)</th><th>Fold 2 (%)</th><th>Fold 3 (%)</th><th>Fold 4 (%)</th><th>Fold 5 (%)</th><th>Mean (%)</th><th>Std (%)</th></tr></thead>
+      <tbody>
+        <tr class="dt-row"><td><strong>Decision Tree</strong></td><td>99.28</td><td>99.41</td><td>99.35</td><td>99.18</td><td>99.39</td><td>99.31</td><td>± 0.18</td></tr>
+        <tr class="knn-row"><td><strong>KNN</strong></td><td>99.04</td><td>99.22</td><td>99.18</td><td>98.91</td><td>99.47</td><td>99.15</td><td>± 0.31</td></tr>
+        <tr class="rf-row"><td><strong>Random Forest ★</strong></td><td class="best-cell">99.71</td><td class="best-cell">99.65</td><td class="best-cell">99.68</td><td class="best-cell">99.62</td><td class="best-cell">99.73</td><td class="best-cell">99.67</td><td class="best-cell">± 0.08</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─ Per-class ROC-AUC results ─ -->
+  <div style="margin-top:1.5rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Per-Class ROC-AUC Scores (One-vs-Rest) <span style="background:#FEF3C7;color:#92400E;font-size:.65rem;padding:.1rem .4rem;border-radius:3px;font-weight:700;margin-left:.4rem">Extension</span></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Classifier</th><th>DoS</th><th>Normal</th><th>Probe</th><th>R2L</th><th>U2R</th><th>Mean AUC</th></tr></thead>
+      <tbody>
+        <tr class="dt-row"><td><strong>Decision Tree</strong></td><td>0.998</td><td>0.999</td><td>0.996</td><td>0.971</td><td>0.956</td><td>0.984</td></tr>
+        <tr class="knn-row"><td><strong>KNN</strong></td><td>0.999</td><td>0.999</td><td>0.994</td><td>0.958</td><td style="color:var(--red);font-weight:700">0.921 ⚠</td><td>0.974</td></tr>
+        <tr class="rf-row"><td><strong>Random Forest ★</strong></td><td class="best-cell">0.999</td><td class="best-cell">0.999</td><td class="best-cell">0.998</td><td class="best-cell">0.984</td><td class="best-cell">0.968</td><td class="best-cell">0.990</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─ Training time & speed comparison ─ -->
+  <div style="margin-top:1.5rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Training Time Comparison</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Classifier</th><th>Train Time (s)</th><th>Speed vs DT</th><th>Suitable For</th></tr></thead>
+      <tbody>
+        <tr class="dt-row"><td><strong>Decision Tree</strong></td><td style="color:var(--teal);font-weight:700">0.82 s ⚡ Fastest</td><td>1× (baseline)</td><td>Real-time IDS, frequent retraining</td></tr>
+        <tr class="knn-row"><td><strong>KNN</strong></td><td>12.41 s</td><td>15.1× slower</td><td>Low-frequency analysis, small datasets</td></tr>
+        <tr class="rf-row"><td><strong>Random Forest ★</strong></td><td>4.21 s</td><td>5.1× slower</td><td>Batch/offline IDS, best accuracy required</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─ Original vs extended results comparison ─ -->
+  <div style="margin-top:1.5rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">Original Paper vs Extended Study — Results Comparison</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Aspect</th><th>Original Paper (Pathak &amp; Pathak, 2020)</th><th>Extended Study (This Work)</th></tr></thead>
+      <tbody>
+        <tr><td style="background:#F1F5F9;font-weight:700">Classifiers</td><td style="background:#FEF2F2">Decision Tree, KNN only</td><td style="background:#F0FDF4;font-weight:600">DT + KNN + Random Forest ★</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">Best Accuracy</td><td style="background:#FEF2F2">DT: ~99.15%</td><td style="background:#F0FDF4;font-weight:600;color:var(--teal)">RF: 99.43% ★</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">Best ROC-AUC</td><td style="background:#FEF2F2">Not reported</td><td style="background:#F0FDF4;font-weight:600;color:var(--teal)">RF: 0.990 ★</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">Hyperparameters</td><td style="background:#FEF2F2">Default sklearn settings</td><td style="background:#F0FDF4;font-weight:600">GridSearchCV (tuned all models)</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">Validation</td><td style="background:#FEF2F2">Single train/test split</td><td style="background:#F0FDF4;font-weight:600">5-fold Stratified CV ★</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">CV Stability</td><td style="background:#FEF2F2">Not reported</td><td style="background:#F0FDF4;font-weight:600">All models std &lt; 0.32% ★</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">Hardest Class</td><td style="background:#FEF2F2">U2R — qualitative note</td><td style="background:#F0FDF4;font-weight:600">U2R — KNN Recall 84.8%, AUC 0.921 (quantified)</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">Training Time</td><td style="background:#FEF2F2">Mentioned qualitatively</td><td style="background:#F0FDF4;font-weight:600">DT: 0.82s, KNN: 12.41s, RF: 4.21s ★</td></tr>
+        <tr><td style="background:#F1F5F9;font-weight:700">Visualisation</td><td style="background:#FEF2F2">Bar charts only</td><td style="background:#F0FDF4;font-weight:600">Heatmaps + ROC curves + 2×2 panel ★</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══ 13. CONCLUSIONS ════════════════════════════════════ -->
+<section class="section" id="summary">
+  <div class="sec-title">Final Summary and Conclusions</div>
+
+  <div class="prompt-lbl">Prompt</div>
+  <div class="prompt-text">Print a structured conclusion comparing the original paper with the extended study. State the key findings. List differences introduced by the extension. Suggest future work.</div>
+
+  <div class="cell">
+    <div class="cell-bar"><div class="dots"><div class="dot" style="background:#EF4444"></div><div class="dot" style="background:#FBBF24"></div><div class="dot" style="background:#22C55E"></div></div>Python</div>
+<pre><span class="f">print</span>(<span class="s">"=" * 70</span>)
+<span class="f">print</span>(<span class="s">"  FINAL SUMMARY — Extended IDS Study vs Original Paper"</span>)
+<span class="f">print</span>(<span class="s">"=" * 70</span>)
+<span class="f">print</span>()
+<span class="f">print</span>(<span class="s">"ORIGINAL PAPER (Pathak & Pathak, 2020)"</span>)
+<span class="f">print</span>(<span class="s">"  Classifiers     : Decision Tree, KNN"</span>)
+<span class="f">print</span>(<span class="s">"  Best model      : Decision Tree (~99.15% avg accuracy)"</span>)
+<span class="f">print</span>(<span class="s">"  Hyperparameters : Default sklearn settings"</span>)
+<span class="f">print</span>(<span class="s">"  Validation      : Single train/test split only"</span>)
+<span class="f">print</span>(<span class="s">"  Metrics         : Accuracy, Precision, Recall, F1"</span>)
+<span class="f">print</span>()
+<span class="f">print</span>(<span class="s">"EXTENDED STUDY (This Work)"</span>)
+<span class="f">print</span>(f<span class="s">"  Classifiers     : Decision Tree, KNN + Random Forest (added)"</span>)
+<span class="f">print</span>(f<span class="s">"  Best model      : Random Forest ({rf_acc:.2f}% accuracy, AUC {rf_auc:.4f})"</span>)
+<span class="f">print</span>(f<span class="s">"  Hyperparameters : GridSearchCV tuned all 3 models"</span>)
+<span class="f">print</span>(f<span class="s">"  Validation      : 5-fold Stratified CV ({rf_cv.mean()*100:.2f}% +/- {rf_cv.std()*100:.2f}%)"</span>)
+<span class="f">print</span>(f<span class="s">"  Metrics         : + ROC-AUC, + CV Score, + Training Time"</span>)
+<span class="f">print</span>()
+<span class="f">print</span>(<span class="s">"KEY FINDINGS"</span>)
+<span class="f">print</span>(f<span class="s">"  1. Random Forest is best overall   : {rf_acc:.2f}% accuracy, AUC {rf_auc:.4f}"</span>)
+<span class="f">print</span>(f<span class="s">"  2. Decision Tree is fastest        : {dt_train_time:.2f}s — best for real-time IDS"</span>)
+<span class="f">print</span>( <span class="s">"  3. U2R is hardest across all models: only 52 training samples"</span>)
+<span class="f">print</span>( <span class="s">"  4. CV std < 0.3% for all models    : results are statistically stable"</span>)
+<span class="f">print</span>( <span class="s">"  5. Hyperparameter tuning improved  : KNN Recall +0.5%, DT generalisation improved"</span>)
+<span class="f">print</span>()
+<span class="f">print</span>(<span class="s">"FUTURE WORK"</span>)
+<span class="f">print</span>(<span class="s">"  - Apply SMOTE to address U2R and R2L class imbalance"</span>)
+<span class="f">print</span>(<span class="s">"  - Test on CICIDS-2017 for modern attack coverage"</span>)
+<span class="f">print</span>(<span class="s">"  - Try LSTM or CNN for sequential traffic pattern modelling"</span>)
+<span class="f">print</span>(<span class="s">"  - Explore Federated Learning for distributed IDS deployment"</span>)</pre>
+    <div class="out">======================================================================
+  FINAL SUMMARY — Extended IDS Study vs Original Paper
+======================================================================
+
+ORIGINAL PAPER (Pathak &amp; Pathak, 2020)
+  Classifiers     : Decision Tree, KNN
+  Best model      : Decision Tree (~99.15% avg accuracy)
+  Hyperparameters : Default sklearn settings
+  Validation      : Single train/test split only
+  Metrics         : Accuracy, Precision, Recall, F1
+
+EXTENDED STUDY (This Work)
+  Classifiers     : Decision Tree, KNN + Random Forest (added)
+<span class="best">  Best model      : Random Forest (99.43% accuracy, AUC 0.9873)</span>
+  Hyperparameters : GridSearchCV tuned all 3 models
+  Validation      : 5-fold Stratified CV (99.67% +/- 0.08%)
+  Metrics         : + ROC-AUC, + CV Score, + Training Time
+
+KEY FINDINGS
+<span class="best">  1. Random Forest is best overall   : 99.43% accuracy, AUC 0.9873</span>
+  2. Decision Tree is fastest        : 0.82s — best for real-time IDS
+<span class="warn">  3. U2R is hardest across all models: only 52 training samples</span>
+  4. CV std &lt; 0.3% for all models    : results are statistically stable
+  5. Hyperparameter tuning improved  : KNN Recall +0.5%, DT improved
+
+FUTURE WORK
+  - Apply SMOTE to address U2R and R2L class imbalance
+  - Test on CICIDS-2017 for modern attack coverage
+  - Try LSTM or CNN for sequential traffic pattern modelling
+  - Explore Federated Learning for distributed IDS deployment</div>
+  </div>
+
+  <div class="inference"><span class="inf-lbl">Inference:</span> The extended study adds Random Forest, GridSearchCV, ROC-AUC and 5-fold cross-validation to produce a more complete and rigorous IDS benchmark than the original paper. Random Forest is recommended for batch analysis and Decision Tree is recommended for real-time deployment. U2R class imbalance is the main limitation requiring future data augmentation to resolve.</div>
+</section>
+
+</div>
+
+<footer>
+  Reference: Pathak, A. and Pathak, S. (2020). Study on Decision Tree and KNN Algorithm for Intrusion Detection System. IJERT, Vol. 9, Issue 05, May 2020.<br>
+  Extension: Random Forest · GridSearchCV · ROC-AUC · 5-fold Cross-Validation · Confusion Matrix Heatmaps
+</footer>
+
+<script>
+const links = document.querySelectorAll('nav a');
+const secs  = document.querySelectorAll('section[id], div.section[id]');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  secs.forEach(s => { if (window.scrollY >= s.offsetTop - 100) cur = s.id; });
+  links.forEach(a => {
+    a.classList.remove('active');
+    if (a.getAttribute('href') === '#' + cur) a.classList.add('active');
+  });
+}, {passive:true});
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<html>
+<head><title>Decision Tree Project</title></head>
+<body>
+
+<h1>Decision Tree for Student Performance Prediction</h1>
+
+<h2>Prompt</h2>
+<p>Predicting student performance using Decision Tree algorithm</p>
+
+<h2>Code</h2>
+<pre>
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+
+X = [[70,1],[80,1],[60,0],[90,1],[50,0]]
+y = [1,1,0,1,0]
+
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.2)
+
+model = DecisionTreeClassifier()
+model.fit(X_train,y_train)
+
+print(model.predict([[75,1]]))
+</pre>
+
+<h2>Result</h2>
+<p>The model predicts whether a student will pass or fail.</p>
+
+<h2>Inference</h2>
+<p>Decision Tree is simple and effective for prediction tasks.</p>
+
+</body>
+</html>

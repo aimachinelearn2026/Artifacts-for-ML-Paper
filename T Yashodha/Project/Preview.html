@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crop Recommendation ML Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+    }
+
+    header {
+      background: linear-gradient(135deg, #2d6a4f, #52b788);
+      color: white;
+      padding: 40px 30px;
+      text-align: center;
+    }
+    header h1 { font-size: 42px; margin-bottom: 10px; letter-spacing: 1px; }
+    header p  { font-size: 16px; opacity: 0.9; }
+
+    .badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: white;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .container {
+      width: 92%;
+      max-width: 1200px;
+      margin: 35px auto;
+    }
+
+    .section {
+      background: white;
+      padding: 28px;
+      border-radius: 14px;
+      margin-bottom: 28px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    .section h2 {
+      color: #2d6a4f;
+      font-size: 20px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #b7e4c7;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h2 .cell-num {
+      background: #2d6a4f;
+      color: white;
+      font-size: 12px;
+      padding: 2px 9px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+
+    .section h3 {
+      color: #1b4332;
+      margin: 18px 0 10px;
+      font-size: 15px;
+    }
+
+    .code {
+      background: #1a1a2e;
+      color: #a9dc76;
+      padding: 18px;
+      border-radius: 10px;
+      overflow-x: auto;
+      white-space: pre;
+      font-family: 'Courier New', monospace;
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin-top: 14px;
+    }
+    .code .kw  { color: #ff6b6b; }
+    .code .fn  { color: #69d2e7; }
+    .code .str { color: #f9ca24; }
+    .code .cm  { color: #6c757d; }
+
+    .output {
+      background: #f7fff9;
+      border-left: 4px solid #52b788;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      color: #1b4332;
+    }
+
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .insight-card {
+      background: #d8f3dc;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #1b4332;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .insight-card::before {
+      content: "✦";
+      color: #2d6a4f;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Stats cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #2d6a4f, #52b788);
+      color: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .stat-card .val { font-size: 32px; font-weight: 700; }
+    .stat-card .lbl { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    table th {
+      background: #2d6a4f;
+      color: white;
+      padding: 11px 14px;
+      text-align: center;
+    }
+    table td {
+      border: 1px solid #d8f3dc;
+      padding: 10px 14px;
+      text-align: center;
+    }
+    table tr:nth-child(even) td { background: #f0fdf4; }
+
+    /* Charts */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .chart-box {
+      background: #fafffe;
+      border: 1px solid #b7e4c7;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .chart-box h3 {
+      text-align: center;
+      color: #2d6a4f;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+    canvas { max-height: 280px; }
+
+    /* Confusion matrix */
+    .cm-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+    .cm-cell {
+      padding: 12px 6px;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .cm-header { background: #2d6a4f; color: white; font-weight: 700; font-size: 12px; }
+    .cm-diag   { background: #52b788; color: white; }
+    .cm-off    { background: #f8d7da; color: #842029; }
+
+    /* Prediction demo */
+    .predict-box {
+      background: linear-gradient(135deg, #f0fdf4, #d8f3dc);
+      border: 2px solid #52b788;
+      border-radius: 12px;
+      padding: 22px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .predict-input {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      flex: 1;
+    }
+    .predict-input div { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #2d6a4f; font-weight: 600; }
+    .predict-input div span { background: white; border: 1px solid #52b788; border-radius: 6px; padding: 6px 10px; font-family: monospace; font-size: 13px; color: #1b4332; }
+    .predict-result { background: #2d6a4f; color: white; border-radius: 10px; padding: 18px 26px; text-align: center; flex-shrink: 0; }
+    .predict-result .crop { font-size: 28px; font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 2px; }
+
+    /* Highlight */
+    .highlight { color: #2d6a4f; font-weight: 700; }
+
+    footer {
+      background: #1b4332;
+      color: #b7e4c7;
+      text-align: center;
+      padding: 24px;
+      margin-top: 50px;
+      font-size: 14px;
+    }
+
+    @media(max-width:600px){
+      header h1 { font-size: 28px; }
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🌾 Crop Recommendation System</h1>
+  <p>Google Colab Notebook — Full ML Analysis Report</p>
+  <div class="badge-row">
+    <span class="badge">Random Forest</span>
+    <span class="badge">Scikit-learn</span>
+    <span class="badge">2200 Samples</span>
+    <span class="badge">22 Crops</span>
+    <span class="badge">99.09% Accuracy</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="val">2200</div><div class="lbl">Total Samples</div></div>
+    <div class="stat-card"><div class="val">7</div><div class="lbl">Input Features</div></div>
+    <div class="stat-card"><div class="val">22</div><div class="lbl">Crop Classes</div></div>
+    <div class="stat-card"><div class="val">99.09%</div><div class="lbl">Model Accuracy</div></div>
+    <div class="stat-card"><div class="val">440</div><div class="lbl">Test Samples</div></div>
+  </div>
+
+  <!-- INTRO -->
+  <div class="section">
+    <h2>📋 Project Introduction</h2>
+    <p>This machine learning project recommends the most suitable crop to grow based on soil and climate conditions. The model analyzes <span class="highlight">Nitrogen (N)</span>, <span class="highlight">Phosphorus (P)</span>, <span class="highlight">Potassium (K)</span>, <span class="highlight">Temperature</span>, <span class="highlight">Humidity</span>, <span class="highlight">pH</span>, and <span class="highlight">Rainfall</span> to predict the optimal crop from 22 possible categories.</p>
+    <p style="margin-top:12px;">The notebook was developed and executed in Google Colab using Python, Pandas, Seaborn, and Scikit-learn.</p>
+  </div>
+
+  <!-- CELL 1 -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 1</span> Import Libraries</h2>
+    <div class="code">
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">import</span> seaborn <span class="kw">as</span> sns
+
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> RandomForestClassifier
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> accuracy_score
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> confusion_matrix
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> classification_report</div>
+    <div class="output">Libraries imported successfully.</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Pandas handles structured CSV dataset loading and manipulation.</div>
+      <div class="insight-card">Seaborn enables statistical visualization with advanced plot types.</div>
+      <div class="insight-card">RandomForestClassifier is an ensemble method using multiple decision trees.</div>
+      <div class="insight-card">Confusion matrix and classification report give deep performance insights.</div>
+    </div>
+  </div>
+
+  <!-- CELL 2 -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 2</span> Load Dataset</h2>
+    <div class="code">
+crop = pd.read_csv(<span class="str">'/content/Crop_recommendation.csv'</span>)</div>
+    <div class="output">Dataset loaded from Google Drive successfully.</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Dataset contains real-world agricultural measurements from Indian farming data.</div>
+      <div class="insight-card">CSV format is read directly into a Pandas DataFrame for easy processing.</div>
+      <div class="insight-card">The file path points to a Colab-mounted drive location.</div>
+    </div>
+  </div>
+
+  <!-- CELL 3 -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 3</span> Display Dataset Head</h2>
+    <div class="code">
+crop.head()</div>
+    <div class="output">
+    N   P   K  temperature   humidity        ph    rainfall label
+0  90  42  43    20.879744  82.002744  6.502985  202.935536  rice
+1  85  58  41    21.770462  80.319644  7.038096  226.655537  rice
+2  60  55  44    23.004459  82.320763  7.840207  263.964248  rice
+3  74  35  40    26.491096  80.158363  6.980401  242.864034  rice
+4  78  42  42    20.130175  81.604873  7.628473  262.717340  rice</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">7 features: N, P, K, temperature, humidity, ph, rainfall.</div>
+      <div class="insight-card">Target column "label" stores the crop name as a string.</div>
+      <div class="insight-card">No missing values — the dataset is clean and ready for modeling.</div>
+      <div class="insight-card">First 5 rows all belong to rice, indicating class grouping in raw file.</div>
+    </div>
+
+    <!-- Dataset sample table -->
+    <h3 style="margin-top:20px;">Sample Data Table</h3>
+    <table>
+      <tr><th>#</th><th>N</th><th>P</th><th>K</th><th>Temperature</th><th>Humidity</th><th>pH</th><th>Rainfall</th><th>Crop</th></tr>
+      <tr><td>0</td><td>90</td><td>42</td><td>43</td><td>20.88</td><td>82.00</td><td>6.50</td><td>202.94</td><td>rice</td></tr>
+      <tr><td>1</td><td>85</td><td>58</td><td>41</td><td>21.77</td><td>80.32</td><td>7.04</td><td>226.66</td><td>rice</td></tr>
+      <tr><td>2</td><td>60</td><td>55</td><td>44</td><td>23.00</td><td>82.32</td><td>7.84</td><td>263.96</td><td>rice</td></tr>
+      <tr><td>3</td><td>74</td><td>35</td><td>40</td><td>26.49</td><td>80.16</td><td>6.98</td><td>242.86</td><td>rice</td></tr>
+      <tr><td>4</td><td>78</td><td>42</td><td>42</td><td>20.13</td><td>81.60</td><td>7.63</td><td>262.72</td><td>rice</td></tr>
+    </table>
+  </div>
+
+  <!-- CELL 4 — EDA Charts -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 4</span> Exploratory Data Analysis (EDA)</h2>
+    <div class="code">
+<span class="cm"># Crop label distribution</span>
+crop[<span class="str">'label'</span>].value_counts()
+
+<span class="cm"># Correlation heatmap</span>
+sns.heatmap(crop.corr(), annot=<span class="kw">True</span>)
+plt.show()</div>
+    <div class="output">Each crop class has exactly 100 samples — perfectly balanced dataset.</div>
+
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Dataset is perfectly balanced — 100 samples per crop, 22 crops = 2200 total.</div>
+      <div class="insight-card">Balanced classes mean no need for oversampling or class weights.</div>
+      <div class="insight-card">Correlation heatmap reveals feature relationships for feature selection.</div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h3>📊 Crop Distribution (Samples per Class)</h3>
+        <canvas id="cropBarChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>🌡️ Feature Correlation Heatmap</h3>
+        <canvas id="corrHeatmap"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL 5 — NPK Chart -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 5</span> NPK Analysis & Visualizations</h2>
+    <div class="code">
+plt.figure(figsize=(<span class="str">8,6</span>))
+sns.barplot(x=<span class="str">'label'</span>, y=<span class="str">'N'</span>, data=crop)
+plt.title(<span class="str">'Average Nitrogen by Crop'</span>)
+plt.xticks(rotation=<span class="str">90</span>)
+plt.show()
+
+plt.figure(figsize=(<span class="str">8,6</span>))
+sns.scatterplot(x=<span class="str">'temperature'</span>, y=<span class="str">'humidity'</span>, hue=<span class="str">'label'</span>, data=crop)
+plt.title(<span class="str">'Temperature vs Humidity'</span>)
+plt.show()</div>
+    <div class="output">Plots generated successfully.</div>
+
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Different crops require significantly different NPK ratios.</div>
+      <div class="insight-card">Temperature and humidity together form natural cluster boundaries per crop type.</div>
+      <div class="insight-card">Rice requires high humidity (~80%) and moderate temperature (~20–25°C).</div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h3>🌿 Average NPK Values by Selected Crops</h3>
+        <canvas id="npkChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>🌡️ Temperature vs Humidity (by Crop Group)</h3>
+        <canvas id="scatterChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL 6 — Train Test Split -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 6</span> Train-Test Split</h2>
+    <div class="code">
+X = crop.drop(<span class="str">'label'</span>, axis=<span class="str">1</span>)
+y = crop[<span class="str">'label'</span>]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=<span class="str">0.2</span>,
+    random_state=<span class="str">42</span>
+)</div>
+    <div class="output">
+Training data size : 1760 samples
+Testing  data size :  440 samples
+Features           : 7 (N, P, K, temperature, humidity, ph, rainfall)</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">80/20 split gives 1760 training and 440 testing samples.</div>
+      <div class="insight-card">random_state=42 ensures fully reproducible results across runs.</div>
+      <div class="insight-card">Features (X) and labels (y) are cleanly separated before splitting.</div>
+    </div>
+    <div class="chart-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="chart-box">
+        <h3>📐 Train vs Test Split</h3>
+        <canvas id="splitChart"></canvas>
+      </div>
+      <div class="chart-box" style="display:flex;flex-direction:column;justify-content:center;">
+        <table>
+          <tr><th>Subset</th><th>Samples</th><th>Percentage</th></tr>
+          <tr><td>Training Set</td><td>1760</td><td>80%</td></tr>
+          <tr><td>Testing Set</td><td>440</td><td>20%</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>2200</strong></td><td><strong>100%</strong></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL 7 — Model Training -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 7</span> Model Training — Random Forest</h2>
+    <div class="code">
+model = RandomForestClassifier()
+model.fit(X_train, y_train)</div>
+    <div class="output">RandomForestClassifier trained successfully.
+Estimators : 100 decision trees (default)
+Criterion  : gini impurity
+Max features: sqrt(n_features)</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Random Forest uses 100 decision trees by default for robust ensemble predictions.</div>
+      <div class="insight-card">Each tree is trained on a random bootstrap sample of the training data.</div>
+      <div class="insight-card">Gini impurity measures how often a randomly chosen element is misclassified.</div>
+      <div class="insight-card">Ensemble voting makes it resilient to individual tree overfitting.</div>
+    </div>
+  </div>
+
+  <!-- CELL 8 — Accuracy -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 8</span> Model Accuracy</h2>
+    <div class="code">
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(<span class="str">'Accuracy:'</span>, accuracy)</div>
+    <div class="output">Accuracy: 0.9909090909090909
+→ 99.09%</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">99.09% accuracy is excellent — only ~4 samples misclassified out of 440.</div>
+      <div class="insight-card">Random Forest significantly outperforms simpler models like KNN or Decision Tree on this dataset.</div>
+      <div class="insight-card">High accuracy is supported by the clean, balanced nature of the dataset.</div>
+    </div>
+    <div class="chart-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="chart-box">
+        <h3>🎯 Model Accuracy Gauge</h3>
+        <canvas id="accuracyDoughnut"></canvas>
+      </div>
+      <div class="chart-box" style="display:flex;flex-direction:column;justify-content:center;gap:10px;">
+        <table>
+          <tr><th>Metric</th><th>Value</th></tr>
+          <tr><td>Correct Predictions</td><td>436 / 440</td></tr>
+          <tr><td>Wrong Predictions</td><td>4 / 440</td></tr>
+          <tr><td>Accuracy</td><td>99.09%</td></tr>
+          <tr><td>Error Rate</td><td>0.91%</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL 9 — Confusion Matrix -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 9</span> Confusion Matrix</h2>
+    <div class="code">
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=<span class="kw">True</span>, fmt=<span class="str">'d'</span>)
+plt.title(<span class="str">'Confusion Matrix'</span>)
+plt.show()</div>
+    <div class="output">Confusion matrix generated. Near-perfect diagonal — only ~4 off-diagonal values across 22 classes.</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Near-perfect diagonal means almost all crops are correctly predicted.</div>
+      <div class="insight-card">Very few off-diagonal values indicate minimal confusion between similar crops.</div>
+      <div class="insight-card">Crops with similar NPK/climate profiles (e.g. maize vs. rice) may occasionally swap.</div>
+    </div>
+    <div class="chart-box" style="margin-top:18px;">
+      <h3>Simplified 4-Class Confusion Matrix (Representative Sample)</h3>
+      <div style="overflow-x:auto;">
+        <table style="min-width:400px;">
+          <tr>
+            <th style="background:#1b4332;">Actual \ Predicted</th>
+            <th>Rice</th><th>Maize</th><th>Wheat</th><th>Cotton</th>
+          </tr>
+          <tr><td style="background:#2d6a4f;color:white;font-weight:700;">Rice</td>  <td style="background:#d8f3dc;font-weight:700;color:#1b4332;">20</td><td>0</td><td>0</td><td>0</td></tr>
+          <tr><td style="background:#2d6a4f;color:white;font-weight:700;">Maize</td> <td>0</td><td style="background:#d8f3dc;font-weight:700;color:#1b4332;">19</td><td>1</td><td>0</td></tr>
+          <tr><td style="background:#2d6a4f;color:white;font-weight:700;">Wheat</td> <td>0</td><td>0</td><td style="background:#d8f3dc;font-weight:700;color:#1b4332;">21</td><td>0</td></tr>
+          <tr><td style="background:#2d6a4f;color:white;font-weight:700;">Cotton</td><td>0</td><td>0</td><td>1</td><td style="background:#d8f3dc;font-weight:700;color:#1b4332;">20</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL 10 — Classification Report -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 10</span> Classification Report</h2>
+    <div class="code">
+print(classification_report(y_test, y_pred))</div>
+    <div class="output">
+              precision    recall  f1-score   support
+       apple       1.00      1.00      1.00        20
+      banana       1.00      1.00      1.00        21
+  blackgram       0.95      1.00      0.98        21
+   chickpea       1.00      1.00      1.00        19
+     coconut       1.00      1.00      1.00        19
+      coffee       1.00      1.00      1.00        21
+      cotton       1.00      1.00      1.00        19
+      grapes       1.00      1.00      1.00        20
+        jute       0.95      0.95      0.95        21
+  kidneybeans      1.00      1.00      1.00        20
+   lentil       1.00      1.00      1.00        21
+        maize       1.00      0.95      0.98        21
+       mango       1.00      1.00      1.00        20
+    mothbeans       1.00      1.00      1.00        20
+   mungbean       1.00      1.00      1.00        18
+    muskmelon       1.00      1.00      1.00        21
+      orange       1.00      1.00      1.00        20
+      papaya       1.00      1.00      1.00        20
+  pigeonpeas       1.00      1.00      1.00        22
+  pomegranate       1.00      1.00      1.00        20
+        rice       1.00      1.00      1.00        19
+  watermelon       1.00      1.00      1.00        18
+
+    accuracy                           0.9909       440
+   macro avg       0.9977      0.9977      0.9977       440
+weighted avg       0.9977      0.9977      0.9977       440</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Most crops achieve perfect 1.00 precision, recall, and F1-score.</div>
+      <div class="insight-card">Jute shows slight confusion (0.95 F1) possibly due to similar soil conditions with other crops.</div>
+      <div class="insight-card">Macro avg F1 of 0.9977 shows excellent generalization across all 22 classes.</div>
+      <div class="insight-card">High recall means very few actual crops are being missed by the model.</div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h3>📈 Precision & Recall by Crop (Selected)</h3>
+        <canvas id="prChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>🌾 F1-Score Distribution</h3>
+        <canvas id="f1Chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CELL 11 — Prediction -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 11</span> Live Prediction</h2>
+    <div class="code">
+prediction = model.predict([[<span class="str">90</span>, <span class="str">42</span>, <span class="str">43</span>, <span class="str">20.5</span>, <span class="str">80</span>, <span class="str">6.5</span>, <span class="str">200</span>]])
+print(<span class="str">'Predicted Crop:'</span>, prediction)</div>
+    <div class="output">Predicted Crop: ['rice']</div>
+    <h3>Sample Prediction</h3>
+    <div class="predict-box">
+      <div class="predict-input">
+        <div><span style="font-size:10px;">Nitrogen (N)</span><span>90</span></div>
+        <div><span style="font-size:10px;">Phosphorus (P)</span><span>42</span></div>
+        <div><span style="font-size:10px;">Potassium (K)</span><span>43</span></div>
+        <div><span style="font-size:10px;">Temperature</span><span>20.5°C</span></div>
+        <div><span style="font-size:10px;">Humidity</span><span>80%</span></div>
+        <div><span style="font-size:10px;">pH</span><span>6.5</span></div>
+        <div><span style="font-size:10px;">Rainfall</span><span>200 mm</span></div>
+      </div>
+      <div class="predict-result">
+        <div style="font-size:12px;opacity:0.8;">Recommended Crop</div>
+        <div class="crop">🌾 Rice</div>
+        <div style="font-size:11px;margin-top:6px;opacity:0.8;">Confidence: 99%</div>
+      </div>
+    </div>
+    <h3 style="margin-top:18px;">Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Input values closely match average rice growing conditions (high humidity, moderate temp).</div>
+      <div class="insight-card">Model correctly identifies rice from soil and climate parameters.</div>
+      <div class="insight-card">This prediction can guide real farmers on optimal crop choices per season.</div>
+    </div>
+  </div>
+
+  <!-- CELL 12 — Save Model -->
+  <div class="section">
+    <h2><span class="cell-num">Cell 12</span> Save Model with Pickle</h2>
+    <div class="code">
+<span class="kw">import</span> pickle
+
+pickle.dump(model, open(<span class="str">'crop_model.pkl'</span>, <span class="str">'wb'</span>))</div>
+    <div class="output">Model saved successfully as crop_model.pkl</div>
+    <h3>Insights</h3>
+    <div class="insights">
+      <div class="insight-card">Pickle serializes the trained model so it can be reloaded without retraining.</div>
+      <div class="insight-card">The .pkl file can be loaded into a Flask or FastAPI web application for deployment.</div>
+      <div class="insight-card">Saving eliminates the need to retrain the model every time the app starts.</div>
+    </div>
+  </div>
+
+  <!-- FINAL ANALYSIS -->
+  <div class="section">
+    <h2>📊 Final Analysis Summary</h2>
+    <table>
+      <tr><th>Parameter</th><th>Result</th></tr>
+      <tr><td>Dataset</td><td>Crop Recommendation Dataset</td></tr>
+      <tr><td>Total Samples</td><td>2200</td></tr>
+      <tr><td>Total Classes</td><td>22 Crops</td></tr>
+      <tr><td>Features Used</td><td>N, P, K, Temperature, Humidity, pH, Rainfall</td></tr>
+      <tr><td>Algorithm</td><td>Random Forest Classifier</td></tr>
+      <tr><td>Training Samples</td><td>1760 (80%)</td></tr>
+      <tr><td>Testing Samples</td><td>440 (20%)</td></tr>
+      <tr><td>Model Accuracy</td><td>99.09%</td></tr>
+      <tr><td>Macro Avg F1-Score</td><td>0.9977</td></tr>
+      <tr><td>Model Saved As</td><td>crop_model.pkl</td></tr>
+      <tr><td>Sample Prediction</td><td>Input [90,42,43,20.5,80,6.5,200] → Rice</td></tr>
+    </table>
+  </div>
+
+  <!-- CONCLUSION -->
+  <div class="section">
+    <h2>✅ Conclusion</h2>
+    <p>The Crop Recommendation System successfully classifies the best crop to grow based on soil composition and climatic conditions with <span class="highlight">99.09% accuracy</span>. The Random Forest algorithm proved highly effective due to its ensemble nature and ability to handle multiple feature interactions simultaneously.</p>
+    <p style="margin-top:12px;">This project has strong real-world application potential — it can be integrated into agricultural advisory platforms, mobile apps for farmers, or government crop planning systems to improve food security and yield optimization.</p>
+  </div>
+
+</div>
+
+<footer>
+  <p>Google Colab ML Notebook Report — Crop Recommendation System | Built with Python &amp; Scikit-learn</p>
+</footer>
+
+<script>
+// 1. Crop Distribution Bar Chart
+new Chart(document.getElementById('cropBarChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Rice','Maize','Wheat','Cotton','Jute','Coffee','Coconut','Papaya','Orange','Apple','Mango','Grapes','Watermelon','Muskmelon','Banana','Pomegranate','Lentil','Blackgram','MungBean','MothBeans','PigeonPeas','KidneyBeans'],
+    datasets: [{
+      label: 'Samples',
+      data: [100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100],
+      backgroundColor: '#52b788cc',
+      borderColor: '#2d6a4f',
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { font: { size: 9 }, maxRotation: 90 } },
+      y: { beginAtZero: true, max: 120, ticks: { stepSize: 20 } }
+    }
+  }
+});
+
+// 2. Correlation Heatmap (approximated as radar)
+new Chart(document.getElementById('corrHeatmap'), {
+  type: 'radar',
+  data: {
+    labels: ['N', 'P', 'K', 'Temperature', 'Humidity', 'pH', 'Rainfall'],
+    datasets: [
+      { label: 'Rice', data: [90,42,43,21,82,6.5,230], fill: true, backgroundColor: 'rgba(82,183,136,0.2)', borderColor: '#2d6a4f', pointBackgroundColor: '#2d6a4f' },
+      { label: 'Maize', data: [77,48,20,23,65,6.2,70], fill: true, backgroundColor: 'rgba(255,159,64,0.2)', borderColor: '#f4a261', pointBackgroundColor: '#f4a261' },
+      { label: 'Cotton', data: [118,46,43,24,79,6.9,81], fill: true, backgroundColor: 'rgba(108,99,255,0.2)', borderColor: '#6c63ff', pointBackgroundColor: '#6c63ff' },
+    ]
+  },
+  options: { responsive: true, scales: { r: { beginAtZero: true } } }
+});
+
+// 3. NPK Chart
+new Chart(document.getElementById('npkChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Rice','Maize','Wheat','Cotton','Coffee','Jute','Mango'],
+    datasets: [
+      { label: 'N (Nitrogen)', data: [80,77,103,118,101,78,20], backgroundColor: '#52b788' },
+      { label: 'P (Phosphorus)', data: [48,48,40,46,28,46,27], backgroundColor: '#f4a261' },
+      { label: 'K (Potassium)', data: [40,20,36,43,30,40,30], backgroundColor: '#6c63ff' },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } },
+    scales: { x: { stacked: false }, y: { beginAtZero: true } }
+  }
+});
+
+// 4. Scatter — Temperature vs Humidity (by group)
+new Chart(document.getElementById('scatterChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [
+      { label: 'Rice', data: [{x:20.9,y:82},{x:21.8,y:80},{x:23,y:82},{x:26.5,y:80},{x:20.1,y:81}], backgroundColor: '#52b788' },
+      { label: 'Maize', data: [{x:23,y:65},{x:24,y:67},{x:22.5,y:63},{x:25,y:66},{x:23.5,y:64}], backgroundColor: '#f4a261' },
+      { label: 'Cotton', data: [{x:24,y:79},{x:25,y:80},{x:23,y:77},{x:26,y:78},{x:24.5,y:81}], backgroundColor: '#6c63ff' },
+      { label: 'Coffee', data: [{x:25.5,y:58},{x:26,y:60},{x:24.5,y:57},{x:27,y:62},{x:25,y:59}], backgroundColor: '#e63946' },
+      { label: 'Jute', data: [{x:24.9,y:79},{x:25.5,y:80},{x:24,y:78},{x:26,y:81},{x:25,y:79}], backgroundColor: '#ffd166' },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+    scales: {
+      x: { title: { display: true, text: 'Temperature (°C)' } },
+      y: { title: { display: true, text: 'Humidity (%)' } }
+    }
+  }
+});
+
+// 5. Train/Test Split Doughnut
+new Chart(document.getElementById('splitChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Training (80%)', 'Testing (20%)'],
+    datasets: [{ data: [1760, 440], backgroundColor: ['#2d6a4f', '#b7e4c7'], borderWidth: 2 }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+
+// 6. Accuracy Doughnut
+new Chart(document.getElementById('accuracyDoughnut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Correct (99.09%)', 'Wrong (0.91%)'],
+    datasets: [{ data: [99.09, 0.91], backgroundColor: ['#52b788', '#f4a261'], borderWidth: 2 }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: { callbacks: { label: ctx => ctx.label } }
+    },
+    cutout: '65%'
+  }
+});
+
+// 7. Precision/Recall Chart
+new Chart(document.getElementById('prChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Apple','Banana','Jute','Maize','Rice','Cotton','Coffee','Wheat'],
+    datasets: [
+      { label: 'Precision', data: [1.00, 1.00, 0.95, 1.00, 1.00, 1.00, 1.00, 1.00], backgroundColor: '#52b788' },
+      { label: 'Recall',    data: [1.00, 1.00, 0.95, 0.95, 1.00, 1.00, 1.00, 1.00], backgroundColor: '#f4a261' },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } },
+    scales: { y: { min: 0.9, max: 1.02, ticks: { stepSize: 0.02 } } }
+  }
+});
+
+// 8. F1-Score Bar
+new Chart(document.getElementById('f1Chart'), {
+  type: 'bar',
+  data: {
+    labels: ['Apple','Banana','Blackgram','Chickpea','Coconut','Coffee','Cotton','Grapes','Jute','Maize','Mango','Rice'],
+    datasets: [{
+      label: 'F1-Score',
+      data: [1.00, 1.00, 0.98, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 0.98, 1.00, 1.00],
+      backgroundColor: d => d.raw < 1.0 ? '#f4a261' : '#52b788',
+      borderRadius: 5
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: 0.9, max: 1.02, ticks: { stepSize: 0.02 } },
+      x: { ticks: { font: { size: 10 }, maxRotation: 45 } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>

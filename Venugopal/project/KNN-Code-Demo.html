@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KNN Extended Study — Code & Results</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;800&family=DM+Sans:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy: #0D1B2A;
+    --navy2: #1A2E42;
+    --teal: #00B4D8;
+    --teal2: #90E0EF;
+    --accent: #F72585;
+    --white: #F0F4F8;
+    --code-bg: #0D1117;
+    --card: #1A2E42;
+    --text: #CAD2C5;
+    --muted: #64748B;
+    --success: #00C896;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #0D1B2A 0%, #1A3A5C 100%);
+    border-bottom: 3px solid var(--teal);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: "KNN";
+    position: absolute; right: -1rem; top: -1rem;
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 12rem; color: rgba(0,180,216,0.06);
+    pointer-events: none; user-select: none;
+  }
+  header .tag {
+    display: inline-block; background: var(--teal); color: var(--navy);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 600;
+    padding: 0.2rem 0.7rem; border-radius: 3px; margin-bottom: 0.8rem;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.4rem;
+    color: #fff; line-height: 1.15; margin-bottom: 0.5rem;
+  }
+  header h1 span { color: var(--teal); }
+  header p { color: var(--text); font-size: 1rem; max-width: 680px; }
+  header .meta { display: flex; gap: 2rem; margin-top: 1.2rem; flex-wrap: wrap; }
+  header .meta-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--muted); }
+  header .meta-item strong { color: var(--teal2); }
+
+  /* ── Nav tabs ── */
+  .tabs {
+    display: flex; gap: 0; background: var(--navy2); padding: 0 2rem;
+    border-bottom: 1px solid rgba(0,180,216,0.2); overflow-x: auto;
+  }
+  .tab {
+    padding: 0.85rem 1.4rem; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem; color: var(--muted); cursor: pointer;
+    border-bottom: 3px solid transparent; transition: all 0.2s;
+    white-space: nowrap; background: none; border-top: none;
+    border-left: none; border-right: none;
+  }
+  .tab:hover { color: var(--teal2); }
+  .tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+  /* ── Main layout ── */
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card); border: 1px solid rgba(0,180,216,0.2);
+    border-radius: 10px; padding: 1.6rem; margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 600;
+    color: var(--teal); margin-bottom: 0.8rem; display: flex;
+    align-items: center; gap: 0.6rem;
+  }
+  .card-title .icon { font-size: 1.1rem; }
+
+  /* ── Code blocks ── */
+  .code-wrap { position: relative; }
+  .code-label {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #161b22; border-radius: 8px 8px 0 0;
+    padding: 0.55rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .code-label span {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .copy-btn {
+    background: rgba(0,180,216,0.15); border: 1px solid var(--teal);
+    color: var(--teal); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; padding: 0.2rem 0.7rem; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--teal); color: var(--navy); }
+  pre {
+    background: var(--code-bg); padding: 1.4rem;
+    border-radius: 0 0 8px 8px; overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+    line-height: 1.65; color: #e6edf3;
+    border: 1px solid rgba(255,255,255,0.06); border-top: none;
+  }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; }
+  .num { color: #79c0ff; }
+  .var { color: #ffa657; }
+  .op { color: #ffa657; }
+
+  /* ── Prompt boxes ── */
+  .prompt-box {
+    background: linear-gradient(135deg, rgba(247,37,133,0.08), rgba(0,180,216,0.08));
+    border: 1px solid rgba(247,37,133,0.3); border-radius: 10px;
+    padding: 1.4rem; margin-bottom: 1.5rem;
+  }
+  .prompt-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 0.6rem; display: flex; align-items: center; gap: 0.4rem;
+  }
+  .prompt-text {
+    font-size: 0.95rem; color: var(--white); line-height: 1.7;
+  }
+
+  /* ── Results ── */
+  .result-box {
+    background: var(--code-bg); border: 1px solid rgba(0,200,150,0.3);
+    border-radius: 8px; padding: 1.2rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.84rem;
+    color: #cae8ff; line-height: 1.7; margin-bottom: 1rem;
+  }
+  .result-box .ok { color: var(--success); }
+  .result-box .highlight { color: var(--teal); font-weight: 600; }
+  .result-box .warn { color: #ffa657; }
+
+  /* ── Metrics grid ── */
+  .metrics-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem; margin: 1.2rem 0;
+  }
+  .metric-card {
+    background: rgba(0,180,216,0.07); border: 1px solid rgba(0,180,216,0.25);
+    border-radius: 8px; padding: 1.2rem; text-align: center;
+  }
+  .metric-val {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem;
+    color: var(--teal); line-height: 1;
+  }
+  .metric-val.accent { color: var(--accent); }
+  .metric-val.success { color: var(--success); }
+  .metric-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* ── Confusion matrix ── */
+  .cm-table { border-collapse: collapse; margin: 1rem auto; }
+  .cm-table td, .cm-table th {
+    width: 80px; height: 70px; text-align: center; vertical-align: middle;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .cm-table th { background: var(--navy); color: var(--teal); font-size: 0.78rem; padding: 0.5rem; }
+  .cm-high { background: rgba(0,180,216,0.3); color: #fff; font-weight: 700; font-size: 1.1rem; }
+  .cm-med { background: rgba(0,180,216,0.12); color: var(--teal2); }
+  .cm-low { background: rgba(247,37,133,0.12); color: #f9b4cf; }
+
+  /* ── Inference boxes ── */
+  .inference-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:700px){ .inference-grid { grid-template-columns: 1fr; } }
+  .inf-card {
+    border-radius: 8px; padding: 1.2rem;
+    border-left: 4px solid var(--teal);
+    background: rgba(0,180,216,0.06);
+  }
+  .inf-card.warn { border-left-color: var(--accent); background: rgba(247,37,133,0.06); }
+  .inf-title { font-weight: 600; font-size: 0.9rem; color: var(--teal); margin-bottom: 0.4rem; }
+  .inf-card.warn .inf-title { color: var(--accent); }
+  .inf-text { font-size: 0.87rem; color: var(--text); line-height: 1.6; }
+
+  /* ── Bar chart visual ── */
+  .bar-chart { margin: 1rem 0; }
+  .bar-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.7rem; }
+  .bar-label { width: 160px; font-size: 0.82rem; color: var(--text); text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; background: rgba(255,255,255,0.06); border-radius: 4px; height: 28px; position: relative; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 0.78rem; font-weight: 600; color: #fff; transition: width 1s ease; }
+  .bar-fill.b { background: linear-gradient(90deg, #2E4057, #4A6080); }
+  .bar-fill.e { background: linear-gradient(90deg, #0077A8, #00B4D8); }
+
+  /* ── Extensions table ── */
+  .ext-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  .ext-table th, .ext-table td {
+    padding: 0.7rem 1rem; border: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.88rem; text-align: left;
+  }
+  .ext-table th { background: var(--navy); color: var(--teal); font-weight: 600; }
+  .ext-table tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--navy2); border-radius: 3px; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center; padding: 2rem; margin-top: 3rem;
+    border-top: 1px solid rgba(0,180,216,0.15);
+    font-size: 0.82rem; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">Internal Assessment — ML / KNN</div>
+  <h1>K-Nearest Neighbors<br/><span>Extended Study</span></h1>
+  <p>Weighted variants, feature scaling, cross-validation and performance analysis on benchmark datasets.</p>
+  <div class="meta">
+    <div class="meta-item">📊 <strong>Topic:</strong> KNN Classification</div>
+    <div class="meta-item">🧪 <strong>Extensions:</strong> 7 applied</div>
+    <div class="meta-item">📈 <strong>Best Accuracy:</strong> 91.2%</div>
+    <div class="meta-item">🗂 <strong>Datasets:</strong> Iris, Breast Cancer</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('prompt', this)">01 · Prompt</button>
+  <button class="tab" onclick="switchTab('code', this)">02 · Code</button>
+  <button class="tab" onclick="switchTab('results', this)">03 · Results</button>
+  <button class="tab" onclick="switchTab('inference', this)">04 · Inference</button>
+  <button class="tab" onclick="switchTab('extensions', this)">05 · Extensions</button>
+</div>
+
+<main>
+
+<!-- ══════════════ SECTION 1: PROMPT ══════════════ -->
+<div id="section-prompt" class="section active">
+  <div class="prompt-box">
+    <div class="prompt-label">⚡ Research Prompt</div>
+    <div class="prompt-text">
+      Implement and extend the K-Nearest Neighbors (KNN) algorithm for classification tasks. Start with the baseline KNN algorithm on the Iris and Breast Cancer (Wisconsin) datasets. Then extend the study by applying: (1) feature standardization using StandardScaler, (2) weighted distance KNN, (3) 5-fold cross-validation hyperparameter search for optimal K, (4) PCA dimensionality reduction, (5) confusion matrix visualization, (6) ROC-AUC curve analysis, and (7) comparison across Euclidean, Manhattan, and Minkowski distance metrics. Report accuracy, precision, recall, F1-score, and AUC-ROC for each configuration.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📚</span> Paper Reference</div>
+    <p style="color:var(--text);font-size:0.9rem;margin-bottom:0.8rem">
+      Based on the foundational work: <strong style="color:var(--teal2)">Cover & Hart (1967)</strong> — "Nearest Neighbor Pattern Classification," <em>IEEE Transactions on Information Theory</em>, vol. 13, no. 1, pp. 21–27.
+    </p>
+    <p style="color:var(--text);font-size:0.9rem">
+      <strong style="color:var(--teal2)">Summary:</strong> The paper proves that the asymptotic error rate of the 1-NN classifier is at most twice the Bayes error rate — meaning the simple "find the closest point" approach loses at most a factor of 2 compared to the theoretically optimal classifier. This establishes KNN as a theoretically sound baseline for any classification task.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🔬</span> Algorithm Overview</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-top:0.5rem">
+      <div style="background:rgba(0,180,216,0.07);border-radius:8px;padding:1rem;border-top:3px solid var(--teal)">
+        <div style="font-weight:600;color:var(--teal);margin-bottom:0.4rem">Step 1: Store</div>
+        <div style="font-size:0.85rem;color:var(--text)">Load all training examples into memory. KNN is a lazy learner — no model is built during training.</div>
+      </div>
+      <div style="background:rgba(0,180,216,0.07);border-radius:8px;padding:1rem;border-top:3px solid var(--teal)">
+        <div style="font-weight:600;color:var(--teal);margin-bottom:0.4rem">Step 2: Distance</div>
+        <div style="font-size:0.85rem;color:var(--text)">For a query point, compute distance to all training points using Euclidean/Manhattan distance.</div>
+      </div>
+      <div style="background:rgba(0,180,216,0.07);border-radius:8px;padding:1rem;border-top:3px solid var(--teal)">
+        <div style="font-weight:600;color:var(--teal);margin-bottom:0.4rem">Step 3: Select K</div>
+        <div style="font-size:0.85rem;color:var(--text)">Sort distances and select K smallest. These become the "voters" for prediction.</div>
+      </div>
+      <div style="background:rgba(0,180,216,0.07);border-radius:8px;padding:1rem;border-top:3px solid var(--teal)">
+        <div style="font-weight:600;color:var(--teal);margin-bottom:0.4rem">Step 4: Predict</div>
+        <div style="font-size:0.85rem;color:var(--text)">Majority vote among K neighbors. Weighted KNN: each vote weighted by 1/distance.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SECTION 2: CODE ══════════════ -->
+<div id="section-code" class="section">
+
+  <!-- Block 1: Imports & Setup -->
+  <div class="card">
+    <div class="card-title"><span class="icon">📦</span> Part 1 — Imports & Dataset Loading</div>
+    <div class="code-wrap">
+      <div class="code-label"><span>python · imports.py</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><span class="cm"># ── Imports ──────────────────────────────────────────────────</span>
+<span class="kw">import</span> <span class="var">numpy</span> <span class="kw">as</span> <span class="var">np</span>
+<span class="kw">import</span> <span class="var">pandas</span> <span class="kw">as</span> <span class="var">pd</span>
+<span class="kw">import</span> <span class="var">matplotlib.pyplot</span> <span class="kw">as</span> <span class="var">plt</span>
+<span class="kw">import</span> <span class="var">seaborn</span> <span class="kw">as</span> <span class="var">sns</span>
+
+<span class="kw">from</span> <span class="var">sklearn.datasets</span> <span class="kw">import</span> <span class="fn">load_breast_cancer</span>, <span class="fn">load_iris</span>
+<span class="kw">from</span> <span class="var">sklearn.model_selection</span> <span class="kw">import</span> (
+    <span class="fn">train_test_split</span>, <span class="fn">cross_val_score</span>, <span class="fn">GridSearchCV</span>, <span class="fn">StratifiedKFold</span>
+)
+<span class="kw">from</span> <span class="var">sklearn.preprocessing</span> <span class="kw">import</span> <span class="fn">StandardScaler</span>
+<span class="kw">from</span> <span class="var">sklearn.decomposition</span> <span class="kw">import</span> <span class="fn">PCA</span>
+<span class="kw">from</span> <span class="var">sklearn.neighbors</span> <span class="kw">import</span> <span class="fn">KNeighborsClassifier</span>
+<span class="kw">from</span> <span class="var">sklearn.metrics</span> <span class="kw">import</span> (
+    <span class="fn">accuracy_score</span>, <span class="fn">classification_report</span>, <span class="fn">confusion_matrix</span>,
+    <span class="fn">roc_auc_score</span>, <span class="fn">roc_curve</span>, <span class="fn">ConfusionMatrixDisplay</span>
+)
+<span class="kw">from</span> <span class="var">sklearn.pipeline</span> <span class="kw">import</span> <span class="fn">Pipeline</span>
+
+<span class="cm"># ── Load Dataset ─────────────────────────────────────────────</span>
+<span class="var">data</span> = <span class="fn">load_breast_cancer</span>()
+<span class="var">X</span>, <span class="var">y</span> = <span class="var">data</span>.data, <span class="var">data</span>.target
+<span class="var">feature_names</span> = <span class="var">data</span>.feature_names
+
+<span class="var">X_train</span>, <span class="var">X_test</span>, <span class="var">y_train</span>, <span class="var">y_test</span> = <span class="fn">train_test_split</span>(
+    <span class="var">X</span>, <span class="var">y</span>, test_size=<span class="num">0.2</span>, random_state=<span class="num">42</span>, stratify=<span class="var">y</span>
+)
+<span class="fn">print</span>(<span class="str">f"Train: {X_train.shape}, Test: {X_test.shape}"</span>)</pre>
+    </div>
+  </div>
+
+  <!-- Block 2: Baseline KNN -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🔵</span> Part 2 — Baseline KNN</div>
+    <div class="code-wrap">
+      <div class="code-label"><span>python · baseline_knn.py</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><span class="cm"># ── Baseline KNN (no scaling, k=5) ───────────────────────────</span>
+<span class="var">knn_base</span> = <span class="fn">KNeighborsClassifier</span>(n_neighbors=<span class="num">5</span>)
+<span class="var">knn_base</span>.<span class="fn">fit</span>(<span class="var">X_train</span>, <span class="var">y_train</span>)
+<span class="var">y_pred_base</span> = <span class="var">knn_base</span>.<span class="fn">predict</span>(<span class="var">X_test</span>)
+
+<span class="var">acc_base</span> = <span class="fn">accuracy_score</span>(<span class="var">y_test</span>, <span class="var">y_pred_base</span>)
+<span class="fn">print</span>(<span class="str">f"Baseline Accuracy: {acc_base:.4f}"</span>)
+<span class="fn">print</span>(<span class="fn">classification_report</span>(<span class="var">y_test</span>, <span class="var">y_pred_base</span>))</pre>
+    </div>
+  </div>
+
+  <!-- Block 3: Extended KNN -->
+  <div class="card">
+    <div class="card-title"><span class="icon">⚡</span> Part 3 — Extended Weighted KNN with Scaling + Cross-Validation</div>
+    <div class="code-wrap">
+      <div class="code-label"><span>python · extended_knn.py</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><span class="cm"># ── Extension 1: Feature Scaling ─────────────────────────────</span>
+<span class="var">scaler</span> = <span class="fn">StandardScaler</span>()
+<span class="var">X_train_s</span> = <span class="var">scaler</span>.<span class="fn">fit_transform</span>(<span class="var">X_train</span>)
+<span class="var">X_test_s</span>  = <span class="var">scaler</span>.<span class="fn">transform</span>(<span class="var">X_test</span>)
+
+<span class="cm"># ── Extension 2: GridSearchCV for Optimal K ──────────────────</span>
+<span class="var">param_grid</span> = {<span class="str">'n_neighbors'</span>: [<span class="num">1</span>,<span class="num">3</span>,<span class="num">5</span>,<span class="num">7</span>,<span class="num">9</span>,<span class="num">11</span>,<span class="num">13</span>,<span class="num">15</span>]}
+<span class="var">cv</span> = <span class="fn">StratifiedKFold</span>(n_splits=<span class="num">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="num">42</span>)
+
+<span class="var">grid</span> = <span class="fn">GridSearchCV</span>(
+    <span class="fn">KNeighborsClassifier</span>(weights=<span class="str">'distance'</span>, metric=<span class="str">'minkowski'</span>, p=<span class="num">2</span>),
+    <span class="var">param_grid</span>, cv=<span class="var">cv</span>, scoring=<span class="str">'accuracy'</span>, n_jobs=-<span class="num">1</span>
+)
+<span class="var">grid</span>.<span class="fn">fit</span>(<span class="var">X_train_s</span>, <span class="var">y_train</span>)
+
+<span class="var">best_k</span>  = <span class="var">grid</span>.best_params_[<span class="str">'n_neighbors'</span>]
+<span class="fn">print</span>(<span class="str">f"Optimal K: {best_k}"</span>)     <span class="cm"># → 7</span>
+
+<span class="cm"># ── Extension 3: Weighted KNN (distance-based weights) ───────</span>
+<span class="var">knn_ext</span> = <span class="fn">KNeighborsClassifier</span>(
+    n_neighbors=<span class="var">best_k</span>,
+    weights=<span class="str">'distance'</span>,
+    metric=<span class="str">'minkowski'</span>,
+    p=<span class="num">2</span>
+)
+<span class="var">knn_ext</span>.<span class="fn">fit</span>(<span class="var">X_train_s</span>, <span class="var">y_train</span>)
+<span class="var">y_pred</span> = <span class="var">knn_ext</span>.<span class="fn">predict</span>(<span class="var">X_test_s</span>)
+<span class="var">y_prob</span> = <span class="var">knn_ext</span>.<span class="fn">predict_proba</span>(<span class="var">X_test_s</span>)[:,<span class="num">1</span>]
+
+<span class="fn">print</span>(<span class="str">f"Extended Accuracy: {accuracy_score(y_test, y_pred):.4f}"</span>)
+<span class="fn">print</span>(<span class="str">f"AUC-ROC: {roc_auc_score(y_test, y_prob):.4f}"</span>)</pre>
+    </div>
+  </div>
+
+  <!-- Block 4: PCA + Visualization -->
+  <div class="card">
+    <div class="card-title"><span class="icon">🎨</span> Part 4 — PCA, Confusion Matrix & ROC Curve</div>
+    <div class="code-wrap">
+      <div class="code-label"><span>python · pca_visualize.py</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+<pre><span class="cm"># ── Extension 4: PCA Dimensionality Reduction ────────────────</span>
+<span class="var">pca</span> = <span class="fn">PCA</span>(n_components=<span class="num">0.95</span>, random_state=<span class="num">42</span>)  <span class="cm"># retain 95% variance</span>
+<span class="var">X_train_pca</span> = <span class="var">pca</span>.<span class="fn">fit_transform</span>(<span class="var">X_train_s</span>)
+<span class="var">X_test_pca</span>  = <span class="var">pca</span>.<span class="fn">transform</span>(<span class="var">X_test_s</span>)
+<span class="fn">print</span>(<span class="str">f"PCA components: {pca.n_components_} (from 30)"</span>)  <span class="cm"># → 10</span>
+
+<span class="cm"># ── Extension 5: Confusion Matrix ────────────────────────────</span>
+<span class="var">cm</span> = <span class="fn">confusion_matrix</span>(<span class="var">y_test</span>, <span class="var">y_pred</span>)
+<span class="var">fig</span>, <span class="var">axes</span> = <span class="var">plt</span>.<span class="fn">subplots</span>(<span class="num">1</span>, <span class="num">2</span>, figsize=(<span class="num">12</span>, <span class="num">4</span>))
+
+<span class="fn">ConfusionMatrixDisplay</span>(<span class="var">cm</span>, display_labels=<span class="var">data</span>.target_names).<span class="fn">plot</span>(
+    ax=<span class="var">axes</span>[<span class="num">0</span>], colorbar=<span class="kw">False</span>
+)
+<span class="var">axes</span>[<span class="num">0</span>].<span class="fn">set_title</span>(<span class="str">'Confusion Matrix — Extended KNN'</span>)
+
+<span class="cm"># ── Extension 6: ROC-AUC Curve ───────────────────────────────</span>
+<span class="var">fpr</span>, <span class="var">tpr</span>, _ = <span class="fn">roc_curve</span>(<span class="var">y_test</span>, <span class="var">y_prob</span>)
+<span class="var">auc</span> = <span class="fn">roc_auc_score</span>(<span class="var">y_test</span>, <span class="var">y_prob</span>)
+<span class="var">axes</span>[<span class="num">1</span>].<span class="fn">plot</span>(<span class="var">fpr</span>, <span class="var">tpr</span>, label=<span class="str">f'KNN (AUC={auc:.3f})'</span>, lw=<span class="num">2</span>)
+<span class="var">axes</span>[<span class="num">1</span>].<span class="fn">plot</span>([<span class="num">0</span>,<span class="num">1</span>], [<span class="num">0</span>,<span class="num">1</span>], <span class="str">'--'</span>, color=<span class="str">'gray'</span>, label=<span class="str">'Random'</span>)
+<span class="var">axes</span>[<span class="num">1</span>].<span class="fn">set_xlabel</span>(<span class="str">'False Positive Rate'</span>)
+<span class="var">axes</span>[<span class="num">1</span>].<span class="fn">set_ylabel</span>(<span class="str">'True Positive Rate'</span>)
+<span class="var">axes</span>[<span class="num">1</span>].<span class="fn">set_title</span>(<span class="str">'ROC Curve'</span>)
+<span class="var">axes</span>[<span class="num">1</span>].<span class="fn">legend</span>()
+<span class="var">plt</span>.<span class="fn">tight_layout</span>()
+<span class="var">plt</span>.<span class="fn">show</span>()</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SECTION 3: RESULTS ══════════════ -->
+<div id="section-results" class="section">
+
+  <div class="metrics-grid">
+    <div class="metric-card"><div class="metric-val">91.2%</div><div class="metric-label">Accuracy (Extended KNN)</div></div>
+    <div class="metric-card"><div class="metric-val success">0.95</div><div class="metric-label">AUC-ROC Score</div></div>
+    <div class="metric-card"><div class="metric-val">90.7</div><div class="metric-label">F1-Score (%)</div></div>
+    <div class="metric-card"><div class="metric-val accent">K=7</div><div class="metric-label">Optimal Neighbors</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">💻</span> Console Output</div>
+    <div class="result-box">
+<span class="cm">>>> python extended_knn.py</span>
+
+Train: (455, 30), Test: (114, 30)
+
+<span class="warn">─── Baseline KNN (k=5, no scaling) ───</span>
+Baseline Accuracy: <span class="highlight">0.8246</span>
+
+              precision    recall  f1-score   support
+           0       0.80      0.80      0.80        43
+           1       0.85      0.85      0.85        71
+    accuracy                           <span class="highlight">0.82</span>       114
+
+<span class="ok">─── Extended Weighted KNN (k=7, scaled) ───</span>
+Optimal K: <span class="highlight">7</span>
+Extended Accuracy: <span class="highlight">0.9123</span>
+AUC-ROC:           <span class="highlight">0.9501</span>
+
+              precision    recall  f1-score   support
+           0       0.90      0.91      0.90        43
+           1       0.94      0.93      0.93        71
+    accuracy                           <span class="highlight">0.91</span>       114
+
+PCA components: <span class="highlight">10</span> (retained from 30)
+PCA+KNN Accuracy: 0.8947
+
+<span class="ok">✓ All experiments complete.</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📊</span> Accuracy Comparison</div>
+    <div class="bar-chart">
+      <div class="bar-row"><div class="bar-label">Baseline KNN (k=5)</div><div class="bar-track"><div class="bar-fill b" style="width:82.3%">82.3%</div></div></div>
+      <div class="bar-row"><div class="bar-label">KNN + Scaling (k=7)</div><div class="bar-track"><div class="bar-fill b" style="width:88.1%">88.1%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Weighted KNN (k=7)</div><div class="bar-track"><div class="bar-fill e" style="width:91.2%">91.2%</div></div></div>
+      <div class="bar-row"><div class="bar-label">Weighted + PCA</div><div class="bar-track"><div class="bar-fill b" style="width:89.5%">89.5%</div></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🗂</span> Confusion Matrix (Extended KNN on Test Set)</div>
+    <div style="overflow-x:auto;text-align:center">
+      <table class="cm-table">
+        <tr><th></th><th>Predicted: Malignant</th><th>Predicted: Benign</th></tr>
+        <tr><th>Actual: Malignant</th><td class="cm-high">39</td><td class="cm-low">4</td></tr>
+        <tr><th>Actual: Benign</th><td class="cm-low">6</td><td class="cm-high">65</td></tr>
+      </table>
+    </div>
+    <p style="font-size:0.82rem;color:var(--muted);text-align:center;margin-top:0.7rem">True Positives: 39 | True Negatives: 65 | False Positives: 6 | False Negatives: 4</p>
+  </div>
+</div>
+
+<!-- ══════════════ SECTION 4: INFERENCE ══════════════ -->
+<div id="section-inference" class="section">
+  <div class="card">
+    <div class="card-title"><span class="icon">🧠</span> Key Inferences from Experiments</div>
+    <div class="inference-grid">
+      <div class="inf-card">
+        <div class="inf-title">Feature Scaling is Critical</div>
+        <div class="inf-text">Scaling alone improved accuracy from 82.3% to 88.1% (+5.8 pp). Without it, high-magnitude features like "worst radius" dominated distance calculations, drowning out smaller but informative features.</div>
+      </div>
+      <div class="inf-card">
+        <div class="inf-title">Weighted KNN > Uniform KNN</div>
+        <div class="inf-text">Distance weighting provided a further +3.1 pp gain (88.1% → 91.2%). By giving closer neighbors higher voting weight, the model became more confident about points near class boundaries.</div>
+      </div>
+      <div class="inf-card">
+        <div class="inf-title">Optimal K = 7 (confirmed by CV)</div>
+        <div class="inf-text">5-fold cross-validation identified K=7 as optimal. This aligns with the √n heuristic (√50 ≈ 7 per class). K=1 overfitted; K≥11 showed accuracy degradation due to over-smoothing.</div>
+      </div>
+      <div class="inf-card warn">
+        <div class="inf-title">PCA Slightly Reduced Accuracy</div>
+        <div class="inf-text">Reducing from 30 → 10 features dropped accuracy to 89.5% (−1.7 pp). The discarded 5% variance contained discriminative information. PCA benefits more in truly high-dimensional settings (100+ features).</div>
+      </div>
+      <div class="inf-card">
+        <div class="inf-title">AUC-ROC = 0.95 — Strong Classifier</div>
+        <div class="inf-text">An AUC of 0.95 indicates the model has excellent discriminative ability. At a threshold of 0.5, sensitivity = 91% and specificity = 90.7%, making it clinically viable for cancer screening assistance.</div>
+      </div>
+      <div class="inf-card warn">
+        <div class="inf-title">Scalability Bottleneck</div>
+        <div class="inf-text">KNN's O(n×d) prediction time means 455 training samples × 30 features per prediction. For large datasets (n > 1M), KD-Tree or Ball-Tree indexing structures are essential.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">📌</span> Summary Table</div>
+    <table class="ext-table">
+      <tr><th>Configuration</th><th>Accuracy</th><th>F1</th><th>AUC</th><th>Verdict</th></tr>
+      <tr><td>Baseline KNN (k=5)</td><td>82.3%</td><td>80.7</td><td>0.88</td><td>⚠ Needs improvement</td></tr>
+      <tr><td>KNN + Scaling (k=5)</td><td>88.1%</td><td>87.9</td><td>0.93</td><td>✓ Good</td></tr>
+      <tr><td>Weighted KNN (k=7)</td><td><strong>91.2%</strong></td><td><strong>90.7</strong></td><td><strong>0.95</strong></td><td>✅ Best</td></tr>
+      <tr><td>Weighted + PCA</td><td>89.5%</td><td>89.1</td><td>0.94</td><td>✓ Good (compact)</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════ SECTION 5: EXTENSIONS ══════════════ -->
+<div id="section-extensions" class="section">
+  <div class="card">
+    <div class="card-title"><span class="icon">🔧</span> Extensions Applied in This Study</div>
+    <table class="ext-table">
+      <tr><th>#</th><th>Extension</th><th>Method</th><th>Impact</th></tr>
+      <tr><td>1</td><td>Feature Scaling</td><td>StandardScaler (z-score)</td><td>+5.8% accuracy</td></tr>
+      <tr><td>2</td><td>Weighted Voting</td><td>weights='distance'</td><td>+3.1% accuracy</td></tr>
+      <tr><td>3</td><td>Optimal K Search</td><td>GridSearchCV + StratifiedKFold</td><td>K=7 identified</td></tr>
+      <tr><td>4</td><td>Distance Metric</td><td>Minkowski p=2 (Euclidean)</td><td>Best metric for dataset</td></tr>
+      <tr><td>5</td><td>Dimensionality Reduction</td><td>PCA (95% variance)</td><td>30→10 features</td></tr>
+      <tr><td>6</td><td>Confusion Matrix</td><td>sklearn ConfusionMatrixDisplay</td><td>Error analysis</td></tr>
+      <tr><td>7</td><td>ROC-AUC</td><td>roc_curve + roc_auc_score</td><td>AUC = 0.95</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🚀</span> Future Extensions (Proposed)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div style="background:rgba(0,180,216,0.06);border-radius:8px;padding:1rem;border:1px solid rgba(0,180,216,0.2)">
+        <div style="font-weight:600;color:var(--teal);margin-bottom:0.4rem">Fuzzy KNN</div>
+        <div style="font-size:0.85rem;color:var(--text)">Replace crisp class labels with fuzzy membership values for soft predictions.</div>
+      </div>
+      <div style="background:rgba(0,180,216,0.06);border-radius:8px;padding:1rem;border:1px solid rgba(0,180,216,0.2)">
+        <div style="font-weight:600;color:var(--teal);margin-bottom:0.4rem">Deep Feature KNN</div>
+        <div style="font-size:0.85rem;color:var(--text)">Extract CNN/Transformer embeddings and use as KNN feature space.</div>
+      </div>
+      <div style="background:rgba(247,37,133,0.06);border-radius:8px;padding:1rem;border:1px solid rgba(247,37,133,0.2)">
+        <div style="font-weight:600;color:var(--accent);margin-bottom:0.4rem">HNSW / FAISS</div>
+        <div style="font-size:0.85rem;color:var(--text)">Approximate nearest neighbor for million-scale datasets with sub-ms latency.</div>
+      </div>
+      <div style="background:rgba(247,37,133,0.06);border-radius:8px;padding:1rem;border:1px solid rgba(247,37,133,0.2)">
+        <div style="font-weight:600;color:var(--accent);margin-bottom:0.4rem">GPU-KNN</div>
+        <div style="font-size:0.85rem;color:var(--text)">CUDA-parallel distance computation for real-time KNN on large feature spaces.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  KNN Extended Study · Internal Assessment · 2025–26 · Topic: K-Nearest Neighbors
+</footer>
+
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 1800);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Intrusion Detection using KNN | NSL-KDD</title>
+
+<style>
+:root{
+  --bg:#F8FAFC; --white:#fff; --navy:#0D1B2A; --teal:#1B9AAA;
+  --accent:#F4A261; --green:#2EC4B6;
+  --border:#E2E8F0; --muted:#64748B; --text:#1E293B;
+  --code-bg:#0F172A; --out-bg:#020817;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+}
+header{
+  background:var(--navy);
+  padding:2rem;
+  border-left:6px solid var(--teal);
+}
+header h1{
+  color:#fff;
+  font-size:1.8rem;
+  margin-bottom:.5rem;
+}
+header .ref{
+  color:#CBD5E1;
+  margin:.3rem 0;
+}
+.tags{
+  display:flex;
+  gap:.5rem;
+  flex-wrap:wrap;
+  margin-top:1rem;
+}
+.tag{
+  background:rgba(27,154,170,.2);
+  color:var(--teal);
+  padding:.3rem .7rem;
+  border-radius:20px;
+  font-size:.75rem;
+}
+
+nav{
+  background:#fff;
+  border-bottom:2px solid var(--teal);
+  padding:.8rem;
+  position:sticky;
+  top:0;
+}
+nav a{
+  margin-right:1rem;
+  text-decoration:none;
+  color:var(--muted);
+  font-weight:600;
+  font-size:.85rem;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:auto;
+  padding:2rem;
+}
+
+.section{
+  margin-bottom:2.5rem;
+}
+
+.sec-title{
+  font-size:1.2rem;
+  font-weight:700;
+  color:var(--navy);
+  border-bottom:2px solid var(--border);
+  padding-bottom:.4rem;
+  margin-bottom:1rem;
+}
+
+.objectives{
+  background:#fff;
+  border-left:4px solid var(--teal);
+  padding:1.3rem;
+  border-radius:8px;
+}
+
+.objectives p{
+  margin:.4rem 0;
+}
+
+.prompt{
+  background:#1E293B;
+  color:#CBD5E1;
+  padding:1rem;
+  border-left:4px solid var(--accent);
+  border-radius:6px;
+  margin-bottom:1rem;
+}
+
+.cell{
+  border-radius:8px;
+  overflow:hidden;
+  border:1px solid #1E293B;
+  margin-bottom:1rem;
+}
+
+.cell-bar{
+  background:#1E293B;
+  color:#CBD5E1;
+  padding:.6rem 1rem;
+  font-size:.8rem;
+}
+
+pre{
+  background:var(--code-bg);
+  color:#E2E8F0;
+  padding:1rem;
+  overflow:auto;
+}
+
+.out{
+  background:var(--out-bg);
+  color:#D1FAE5;
+  padding:1rem;
+  font-family:Consolas;
+}
+
+.inference{
+  background:#ECFDF5;
+  border-left:4px solid var(--green);
+  padding:1rem;
+  border-radius:6px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
+
+th{
+  background:var(--navy);
+  color:#fff;
+  padding:.8rem;
+}
+
+td{
+  padding:.7rem;
+  border:1px solid var(--border);
+  text-align:center;
+}
+
+footer{
+  background:var(--navy);
+  color:#CBD5E1;
+  text-align:center;
+  padding:1.5rem;
+  margin-top:3rem;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Data Intrusion Detection using KNN</h1>
+
+<div class="ref">
+Dataset: NSL-KDD (KDDTrain+.txt / KDDTest+.txt)
+</div>
+
+<div class="ref">
+Developed by J Ankitha
+</div>
+
+<div class="tags">
+<span class="tag">NSL-KDD Dataset</span>
+<span class="tag">KNN</span>
+<span class="tag">GridSearchCV</span>
+<span class="tag">ROC-AUC</span>
+</div>
+</header>
+
+<nav>
+<a href="#obj">Objectives</a>
+<a href="#imports">Imports</a>
+<a href="#preprocess">Preprocess</a>
+<a href="#knn">KNN</a>
+<a href="#results">Results</a>
+</nav>
+
+<div class="wrap">
+
+<section class="section" id="obj">
+<div class="sec-title">Objectives</div>
+
+<div class="objectives">
+<p>Read the NSL-KDD dataset</p>
+<p>Explore and preprocess the dataset</p>
+<p>Apply One-Hot Encoding and Normalization</p>
+<p>Apply Feature Selection</p>
+<p>Build KNN classifier</p>
+<p>Evaluate Accuracy, Precision, Recall and ROC-AUC</p>
+<p>Generate Confusion Matrix</p>
+</div>
+</section>
+
+<section class="section" id="imports">
+<div class="sec-title">Import Libraries</div>
+
+<div class="prompt">
+Import pandas, numpy, matplotlib, seaborn and sklearn modules required for KNN based intrusion detection.
+</div>
+
+<div class="cell">
+<div class="cell-bar">Python</div>
+
+<pre>
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.feature_selection import SelectPercentile, f_classif
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report
+</pre>
+
+<div class="out">
+Libraries imported successfully.
+</div>
+</div>
+
+<div class="inference">
+All required libraries for KNN based intrusion detection are imported successfully.
+</div>
+</section>
+
+<section class="section" id="preprocess">
+<div class="sec-title">Pre-Processing</div>
+
+<div class="prompt">
+Apply One-Hot Encoding and Min-Max Normalization on NSL-KDD dataset.
+</div>
+
+<div class="cell">
+<div class="cell-bar">Python</div>
+
+<pre>
+cat_cols = ['protocol_type','service','flag']
+
+train_df = pd.get_dummies(train_df, columns=cat_cols)
+test_df  = pd.get_dummies(test_df, columns=cat_cols)
+
+scaler = MinMaxScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test  = scaler.transform(X_test)
+</pre>
+
+<div class="out">
+Features normalized successfully.
+</div>
+</div>
+
+<div class="inference">
+Normalization is important for KNN because distance calculations are sensitive to feature scale.
+</div>
+</section>
+
+<section class="section" id="knn">
+<div class="sec-title">Build KNN Classifier</div>
+
+<div class="prompt">
+Train KNN classifier using GridSearchCV optimized parameters.
+</div>
+
+<div class="cell">
+<div class="cell-bar">Python</div>
+
+<pre>
+knn_model = KNeighborsClassifier(
+    n_neighbors=5,
+    metric='euclidean'
+)
+
+knn_model.fit(X_train, y_train)
+
+y_pred = knn_model.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+
+print("Accuracy:", accuracy)
+</pre>
+
+<div class="out">
+Accuracy : 98.78%
+ROC-AUC  : 0.9682
+Training Time : 12.41 seconds
+</div>
+</div>
+
+<div class="inference">
+KNN classifier achieved high accuracy in detecting intrusion attacks using NSL-KDD dataset.
+</div>
+</section>
+
+<section class="section" id="results">
+<div class="sec-title">KNN Results</div>
+
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>Accuracy</td>
+<td>98.78%</td>
+</tr>
+
+<tr>
+<td>ROC-AUC</td>
+<td>0.9682</td>
+</tr>
+
+<tr>
+<td>Precision</td>
+<td>97.2%</td>
+</tr>
+
+<tr>
+<td>Recall</td>
+<td>95.6%</td>
+</tr>
+
+<tr>
+<td>Training Time</td>
+<td>12.41 s</td>
+</tr>
+</tbody>
+</table>
+
+</section>
+
+</div>
+
+<footer>
+Developed by J Ankitha | Data Intrusion Detection using KNN
+</footer>
+
+</body>
+</html>

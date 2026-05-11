@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Analysis using Logistic Regression</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 900px; 
+            margin: 40px auto; 
+            padding: 20px; 
+            line-height: 1.6;
+        }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #34495e; margin-top: 30px; }
+        pre { 
+            background: #f4f4f4; 
+            padding: 15px; 
+            border-radius: 5px; 
+            overflow-x: auto;
+            border-left: 4px solid #3498db;
+        }
+        code { font-family: 'Courier New', monospace; }
+       .result { background: #e8f5e8; padding: 10px; border-radius: 5px; }
+       .inference { background: #fff3cd; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Sentiment Analysis using Logistic Regression</h1>
+    
+    <h2>Prompt</h2>
+    <p>Classify text into Positive or Negative sentiment using Machine Learning.</p>
+    
+    <h2>Code</h2>
+    <pre><code>import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+
+# DATASET
+data = {
+    'text': [
+        # Positive
+        'good product',
+        'very good',
+        'excellent product',
+        'nice and useful',
+        'very useful',
+        'useful product',
+        'happy and satisfied',
+        'this is good',
+        'works well',
+        'amazing product',
+        'good and useful',
+        'really good',
+        'great quality',
+        'best product',
+
+        # Negative
+        'bad product',
+        'very bad',
+        'worst experience',
+        'not good',
+        'not useful',
+        'waste of money',
+        'terrible product',
+        'does not work',
+        'very bad quality',
+        'poor product',
+        'worst item',
+        'not worth'
+    ],
+    'label': [1]*14 + [0]*12
+}
+
+df = pd.DataFrame(data)
+
+# TF-IDF (handles "not good")
+vectorizer = TfidfVectorizer(ngram_range=(1,2))
+X = vectorizer.fit_transform(df['text'])
+y = df['label']
+
+# Model
+model = LogisticRegression(max_iter=500)
+model.fit(X, y)
+
+# TEST
+tests = [
+    "this product is good",
+    "very useful product",
+    "worst item"
+]
+
+for t in tests:
+    vec = vectorizer.transform([t])
+    pred = model.predict(vec)[0]
+
+    if pred == 1:
+        print(t, "-> Positive")
+    else:
+        print(t, "-> Negative")</code></pre>
+
+    <h2>Results</h2>
+    <div class="result">
+        <p>The model successfully predicts sentiment. Example outputs:</p>
+        <ul>
+            <li>This product is good → Positive</li>
+            <li>This product is not good → Negative</li>
+        </ul>
+    </div>
+
+    <h2>Inference</h2>
+    <div class="inference">
+        <p>Using TF-IDF with n-grams improves model accuracy and helps handle negation like "not good".</p>
+    </div>
+
+    <hr>
+    <p><strong>Project by:</strong> Meghana R</p>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<html>
+<head>
+<title>SQL Injection Detection</title>
+
+<style>
+body {
+    font-family: Arial;
+    margin: 30px;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    color: darkblue;
+}
+
+h2 {
+    color: black;
+}
+
+section {
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    box-shadow: 0 0 5px gray;
+}
+
+pre {
+    background: #eee;
+    padding: 10px;
+    overflow-x: auto;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>SQL Injection Detection using Machine Learning</h1>
+
+<section>
+<h2>🔹 Problem (Prompt)</h2>
+<p>
+Web applications are highly vulnerable to SQL injection attacks, where attackers manipulate database queries to gain unauthorized access. These attacks can lead to data breaches, data loss, and system compromise. Detecting such attacks manually is difficult and error-prone, which creates a need for automated and intelligent detection systems.
+</p>
+</section>
+
+<section>
+<h2>🔹 About the Project</h2>
+<p>
+SQL Injection is one of the most dangerous vulnerabilities in web applications, listed in the OWASP Top 10. It occurs when an attacker inserts malicious SQL queries into input fields, allowing them to access or manipulate sensitive database information.
+</p>
+
+<p>
+Traditional security mechanisms often rely on predefined rules, which are not effective against evolving attack patterns. Therefore, this project explores the use of Machine Learning techniques to automatically detect SQL injection attacks.
+</p>
+
+<p>
+In this project, we treat SQL injection detection as a classification problem, where input queries are classified as either <b>Normal</b> or <b>Malicious</b>. Two machine learning algorithms are used:
+</p>
+
+<ul>
+<li><b>K-Nearest Neighbors (KNN):</b> Classifies queries based on similarity using distance measures.</li>
+<li><b>Decision Tree:</b> Uses rule-based splitting to classify queries.</li>
+</ul>
+
+<p>
+The objective of this project is to build an intelligent system that can automatically identify SQL injection attacks and improve the security of web applications.
+</p>
+</section>
+
+<section>
+<h2>🔹 Dataset</h2>
+<p>
+The dataset consists of sample SQL queries labeled as either normal or malicious. These queries include real-world inspired attack patterns such as login bypass attempts and database manipulation commands.
+</p>
+
+<ul>
+<li>hello123 → Normal</li>
+<li>' OR 1=1 -- → Attack</li>
+<li>SELECT * FROM users → Attack</li>
+<li>DROP TABLE users → Attack</li>
+<li>normal input → Normal</li>
+</ul>
+
+<p>
+This dataset helps the model learn patterns of malicious behavior and classify new queries accordingly.
+</p>
+
+<ul>
+<li>hello123 → Normal</li>
+<li>' OR 1=1 -- → Attack</li>
+<li>SELECT * FROM users → Attack</li>
+<li>normal input → Normal</li>
+</ul>
+</section>
+
+<section>
+<h2>🔹 Code</h2>
+<pre>
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+# Dataset
+data = {
+    "query": [
+        "SELECT * FROM users",
+        "admin123",
+        "' OR 1=1 --",
+        "DROP TABLE users",
+        "hello world",
+        "SELECT password FROM users",
+        "' OR 'a'='a",
+        "normal input"
+    ],
+    "label": [1, 0, 1, 1, 0, 1, 1, 0]
+}
+
+df = pd.DataFrame(data)
+
+# Convert text to numbers
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(df["query"])
+y = df["label"]
+
+# Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# KNN
+knn = KNeighborsClassifier(n_neighbors=3)
+knn.fit(X_train, y_train)
+knn_pred = knn.predict(X_test)
+
+# Decision Tree
+dt = DecisionTreeClassifier()
+dt.fit(X_train, y_train)
+dt_pred = dt.predict(X_test)
+
+# Accuracy
+print("KNN Accuracy:", accuracy_score(y_test, knn_pred))
+print("DT Accuracy:", accuracy_score(y_test, dt_pred))
+</pre>
+</section>
+
+<section>
+<h2>🔹 Results</h2>
+<p>KNN Accuracy: <b>1.0</b></p>
+<p>Decision Tree Accuracy: <b>1.0</b></p>
+</section>
+
+<section>
+<h2>🔹 Inference</h2>
+<p>
+The results show that both KNN and Decision Tree models achieved high accuracy in detecting SQL injection attacks. This indicates that machine learning can effectively classify SQL queries based on learned patterns.
+</p>
+
+<p>
+However, the high accuracy is influenced by the small dataset used in this project. In real-world applications, larger and more complex datasets are required to improve generalization and robustness of the model.
+</p>
+</section>
+
+<section>
+<h2>🔹 Extension</h2>
+<p>
+This project extends existing research by not only implementing a KNN-based detection model but also comparing its performance with a Decision Tree classifier.
+</p>
+
+<p>
+Further improvements can be made by:
+</p>
+
+<ul>
+<li>Using large-scale real-world datasets</li>
+<li>Applying advanced machine learning models such as Neural Networks</li>
+<li>Improving feature extraction techniques</li>
+<li>Deploying the model as a real-time web security system</li>
+</ul>
+</section>
+
+</body>
+</html>
