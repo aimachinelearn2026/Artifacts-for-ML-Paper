@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Radiation Esophagitis Prediction</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f4f6f9;
+}
+
+/* NAVBAR */
+nav {
+    background: #1a237e;
+    padding: 15px;
+    text-align: center;
+}
+nav a {
+    color: white;
+    margin: 0 15px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* HEADER */
+header {
+    background: linear-gradient(to right, #3949ab, #5c6bc0);
+    color: white;
+    padding: 40px;
+    text-align: center;
+}
+
+/* SECTION */
+section {
+    margin: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+}
+
+/* CARDS */
+.card {
+    background: #eef2ff;
+    padding: 15px;
+    margin: 10px 0;
+    border-left: 5px solid #3f51b5;
+}
+
+/* CODE BLOCK */
+.code {
+    background: #111;
+    color: #00ffcc;
+    padding: 15px;
+    overflow-x: auto;
+    border-radius: 8px;
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+th {
+    background: #3f51b5;
+    color: white;
+}
+
+/* FOOTER */
+footer {
+    background: #1a237e;
+    color: white;
+    text-align: center;
+    padding: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+<a href="#intro">Intro</a>
+<a href="#method">Methodology</a>
+<a href="#code">Code</a>
+<a href="#results">Results</a>
+<a href="#analysis">Analysis</a>
+<a href="#conclusion">Conclusion</a>
+</nav>
+
+<header>
+<h1>Decision Tree ML for Acute Radiation Esophagitis</h1>
+<p>Saraswathi B | Chanakya University</p>
+</header>
+
+<section id="intro">
+<h2>📌 Introduction</h2>
+<p>
+Radiation-induced esophagitis is a common complication in cancer treatment.
+Machine learning helps predict severity using patient and dose data.
+</p>
+
+<div class="card">
+<b>Why Decision Tree?</b><br>
+✔ Simple<br>
+✔ Interpretable<br>
+✔ Fast classification
+</div>
+</section>
+
+<section id="method">
+<h2>⚙️ Methodology</h2>
+
+<div class="card">
+<b>1. Data Collection:</b> CSV dataset
+</div>
+
+<div class="card">
+<b>2. Preprocessing:</b> Encoding, normalization
+</div>
+
+<div class="card">
+<b>3. Training:</b> DecisionTreeClassifier
+</div>
+
+<div class="card">
+<b>4. Split:</b> 70% Train / 30% Test
+</div>
+
+<div class="card">
+<b>5. Evaluation:</b> Accuracy, Precision, Recall
+</div>
+
+</section>
+
+<section id="code">
+<h2>💻 Machine Learning Code</h2>
+
+<div class="code">
+<pre>
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score
+
+data = pd.read_csv("dataset.csv")
+
+X = data.drop("Grade", axis=1)
+y = data["Grade"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42)
+
+model = DecisionTreeClassifier(max_depth=5)
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print(confusion_matrix(y_test, y_pred))
+print("Accuracy:", accuracy_score(y_test, y_pred))
+</pre>
+</div>
+
+</section>
+
+<section id="results">
+<h2>📊 Results</h2>
+
+<h3>Binary Confusion Matrix</h3>
+<table>
+<tr><th></th><th>Pred 0</th><th>Pred 1</th></tr>
+<tr><th>True 0</th><td>40</td><td>0</td></tr>
+<tr><th>True 1</th><td>3</td><td>57</td></tr>
+</table>
+
+<h3>Multi-Class Matrix</h3>
+<table>
+<tr><th></th><th>P1</th><th>P2</th><th>P3</th></tr>
+<tr><th>T1</th><td>40</td><td>0</td><td>0</td></tr>
+<tr><th>T2</th><td>1</td><td>37</td><td>0</td></tr>
+<tr><th>T3</th><td>0</td><td>0</td><td>22</td></tr>
+</table>
+
+<p><b>Accuracy: ~96%</b></p>
+
+</section>
+
+<section id="analysis">
+<h2>📈 Feature Importance</h2>
+
+<ul>
+<li>V60 → 63% (Most Important)</li>
+<li>AvgDose → 22%</li>
+<li>V40 → 7%</li>
+<li>MaxDose → 5%</li>
+<li>Others → Minimal</li>
+</ul>
+
+<h2>🧠 Inference</h2>
+<div class="card">
+✔ High accuracy model (~96%)<br>
+✔ Very few prediction errors<br>
+✔ Highly interpretable<br>
+✔ Useful for clinical decision systems
+</div>
+
+<h2>⚠️ Limitations</h2>
+<div class="card">
+✖ No real clinical dataset<br>
+✖ No hyperparameter tuning<br>
+✖ No cross-validation
+</div>
+
+</section>
+
+<section id="conclusion">
+<h2>🎯 Conclusion</h2>
+
+<p>
+Decision Tree model provides a simple and effective approach
+for predicting radiation esophagitis. Feature V60 plays a major role
+in classification, making the model highly reliable.
+</p>
+
+</section>
+
+<footer>
+<p>© 2026 Saraswathi B | ML Project</p>
+</footer>
+
+</body>
+</html>

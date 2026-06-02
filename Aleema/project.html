@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Heart Disease Prediction using ANN</title>
+
+<style>
+body {
+    font-family: Arial;
+    margin: 30px;
+    background-color: #f4f4f4;
+}
+h1, h2 {
+    color: #2c3e50;
+}
+.box {
+    background: white;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
+pre {
+    background: #eee;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Machine Learning Project: Heart Disease Prediction using ANN</h1>
+
+<p><b>Name:</b> PINJARI ALEEMA</p>
+<p><b>Course:</b> MCA</p>
+<p><b>Project:</b> Heart Disease Prediction using ANN</p>
+
+<div class="box">
+<h2>1. Problem Statement</h2>
+<p>
+The objective of this project is to predict whether a patient has heart disease 
+based on medical attributes such as age, cholesterol, and blood pressure using 
+Artificial Neural Networks (ANN). Early prediction helps in preventing serious health conditions.
+</p>
+</div>
+
+<div class="box">
+<h2>2. Dataset</h2>
+<ul>
+<li><b>Dataset:</b> Heart Disease Dataset (CSV)</li>
+<li><b>Features:</b> age, sex, cp, trestbps, chol, etc.</li>
+<li><b>Target:</b> 0 (No Disease), 1 (Disease)</li>
+</ul>
+</div>
+
+<div class="box">
+<h2>3. Methodology</h2>
+<ul>
+<li>Data Collection (Heart dataset)</li>
+<li>Data Preprocessing (cleaning and scaling)</li>
+<li>Feature Scaling using StandardScaler</li>
+<li>Train-Test Split (80% training, 20% testing using stratified sampling)</li>
+<li>Model Training using ANN</li>
+<li>Model Evaluation using accuracy, confusion matrix, and classification report</li>
+</ul>
+</div>
+
+<div class="box">
+<h2>4. Code</h2>
+<pre>
+import pandas as pd
+
+df = pd.read_csv("heart.csv")
+
+X = df.drop('target', axis=1)
+y = df['target']
+</pre>
+</div>
+
+<div class="box">
+<h2>5. ANN Model Architecture</h2>
+<ul>
+<li>Input Layer: All features</li>
+<li>Hidden Layer 1: 16 neurons (ReLU)</li>
+<li>Hidden Layer 2: 8 neurons (ReLU)</li>
+<li>Output Layer: 1 neuron (Sigmoid)</li>
+<li>Optimizer: Adam</li>
+<li>Loss Function: Binary Crossentropy</li>
+</ul>
+</div>
+
+<div class="box">
+<h2>6. Results</h2>
+<p>
+<b>ANN Accuracy:</b> 95.61%<br><br>
+
+<b>Confusion Matrix:</b>
+</p>
+
+<pre>
+[[41  1]
+ [ 4 68]]
+</pre>
+
+<p>
+<b>Performance:</b><br>
+Precision: 0.91 – 0.99<br>
+Recall: 0.94 – 0.98<br>
+F1-score: ~0.95<br><br>
+
+The model performs well on unseen test data with minimal errors.
+</p>
+</div>
+
+<div class="box">
+<h2>7. Extension (KNN Comparison)</h2>
+<p>
+<b>KNN Accuracy:</b> 95.61%<br><br>
+Both ANN and KNN show similar performance. However, ANN is preferred because it can learn complex patterns in data.
+</p>
+</div>
+
+<div class="box">
+<h2>8. Advantages</h2>
+<ul>
+<li>High prediction accuracy</li>
+<li>Can handle complex patterns</li>
+<li>Useful in healthcare diagnosis</li>
+</ul>
+</div>
+
+<div class="box">
+<h2>9. Inference</h2>
+<p>
+The ANN model successfully predicts heart disease with high accuracy. 
+The model shows strong performance with minimal errors. 
+It can be used in real-world healthcare systems for early diagnosis and decision-making.
+</p>
+</div>
+
+<div class="box">
+<h2>10. Future Work</h2>
+<ul>
+<li>Use larger datasets</li>
+<li>Apply deep learning models</li>
+<li>Deploy as web application</li>
+<li>Improve accuracy using feature engineering</li>
+</ul>
+</div>
+
+</body>
+</html>
